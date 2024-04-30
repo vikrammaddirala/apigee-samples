@@ -124,7 +124,6 @@
         </plugins>
     </build>
  <!-- Second Proxy -->
-    <groupId>apigee</groupId>
     <artifactId>sample-hello-cicd-02</artifactId>
     <version>v1</version>
     <name>sample-hello-cicd-02</name>
