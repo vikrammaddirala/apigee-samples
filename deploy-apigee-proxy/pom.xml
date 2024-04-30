@@ -123,112 +123,26 @@
             </plugin>
         </plugins>
     </build>
- <!-- Second Proxy -->
-    <artifactId>sample-hello-cicd-02</artifactId>
-    <version>v1</version>
-    <name>sample-hello-cicd-02</name>
-    <packaging>pom</packaging>
-    <pluginRepositories>
-        <pluginRepository>
-            <id>central</id>
-            <name>Maven Plugin Repository</name>
-            <url>https://repo1.maven.org/maven2</url>
-            <layout>default</layout>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
-            <releases>
-                <updatePolicy>never</updatePolicy>
-            </releases>
-        </pluginRepository>
-    </pluginRepositories>
 
-    <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <org.slf4j.simpleLogger.defaultLogLevel>info</org.slf4j.simpleLogger.defaultLogLevel>
-        <project.root.dir>${basedir}</project.root.dir>
-        <target.root.dir>${basedir}/target</target.root.dir>
-        <apigee.deploy.version>2.3.5</apigee.deploy.version>
-    </properties>
-
-    <profiles>
-        <profile>
-            <id>dev</id>
-            <properties>
-                <apigee.profile>dev</apigee.profile>
-                <apigee.env>${env}</apigee.env>
-                <apigee.hosturl>https://apigee.googleapis.com</apigee.hosturl>
-                <apigee.apiversion>v1</apigee.apiversion>
-                <apigee.org>${org}</apigee.org>
-                <apigee.options>override</apigee.options> 
-                <apigee.bearer>${bearer}</apigee.bearer>
-            </properties>
-        </profile>
-    </profiles>
-
-    <build>
-        <pluginManagement>
-            <plugins>
-                <plugin>
-                    <groupId>io.apigee.build-tools.enterprise4g</groupId>
-                    <artifactId>apigee-edge-maven-plugin</artifactId>
-                    <version>${apigee.deploy.version}</version>
-                </plugin>
-            </plugins>
-        </pluginManagement>
-        <plugins>
-            <!-- copy the full apiproxy folder to target folder -->
-            <plugin>
-                <artifactId>maven-resources-plugin</artifactId>
-                <version>2.6</version>
-                <executions>
-                    <execution>
-                        <id>copy-resources</id>
-                        <phase>process-resources</phase>
-                        <goals>
-                            <goal>copy-resources</goal>
-                        </goals>
-                        <configuration>
-                            <overwrite>true</overwrite>
-                            <resources>
-                                <resource>
-                                    <!--source -->
-                                    <directory>${project.root.dir}</directory>
-                                    <filtering>true</filtering>
-                                    <includes>
-                                        <include>apiproxy-02/**</include>
-                                    </includes>
-                                </resource>
-                            </resources>
-                            <!--target -->
-                            <outputDirectory>${target.root.dir}</outputDirectory>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>io.apigee.build-tools.enterprise4g</groupId>
-                <artifactId>apigee-edge-maven-plugin</artifactId>
-                <version>${apigee.deploy.version}</version>
-                <executions>
-                    <execution>
-                        <id>configure-bundle-step</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>configure</goal>
-                        </goals>
-                    </execution>
-                    <!--deploy bundle -->
-                    <execution>
-                        <id>deploy-bundle-step</id>
-                        <phase>install</phase>
-                        <goals>
-                            <goal>deploy</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-        </plugins>
-    </build>
+    <!-- Second Proxy -->
+    <project>
+        <artifactId>sample-hello-cicd-02</artifactId>
+        <version>v1</version>
+        <name>sample-hello-cicd-02</name>
+        <packaging>pom</packaging>
+        <pluginRepositories>
+            <pluginRepository>
+                <id>central</id>
+                <name>Maven Plugin Repository</name>
+                <url>https://repo1.maven.org/maven2</url>
+                <layout>default</layout>
+                <snapshots>
+                    <enabled>false</enabled>
+                </snapshots>
+                <releases>
+                    <updatePolicy>never</updatePolicy>
+                </releases>
+            </pluginRepository>
+        </pluginRepositories>
+    </project>
 </project>
