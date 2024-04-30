@@ -16,9 +16,9 @@
     xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>apigee</groupId>
-    <artifactId>sample-hello-cicd-sf</artifactId>
+    <artifactId>sample-hello-cicd</artifactId>
     <version>v1</version>
-    <name>sample-hello-cicd-sf</name>
+    <name>sample-hello-cicd</name>
     <packaging>pom</packaging>
     <pluginRepositories>
         <pluginRepository>
@@ -52,7 +52,6 @@
                 <apigee.env>${env}</apigee.env>
                 <apigee.hosturl>https://apigee.googleapis.com</apigee.hosturl>
                 <apigee.apiversion>v1</apigee.apiversion>
-                <apigee.apitype>sharedflow</apigee.apitype>
                 <apigee.org>${org}</apigee.org>
                 <apigee.options>override</apigee.options> 
                 <apigee.bearer>${bearer}</apigee.bearer>
@@ -71,7 +70,7 @@
             </plugins>
         </pluginManagement>
         <plugins>
-            <!-- copy the full sharedflowbundle folder to target folder -->
+            <!-- copy the full apiproxy folder to target folder -->
             <plugin>
                 <artifactId>maven-resources-plugin</artifactId>
                 <version>2.6</version>
@@ -90,7 +89,7 @@
                                     <directory>${project.root.dir}</directory>
                                     <filtering>true</filtering>
                                     <includes>
-                                        <include>sharedflowbundle/**</include>
+                                        <include>apiproxy/**</include>
                                     </includes>
                                 </resource>
                             </resources>
