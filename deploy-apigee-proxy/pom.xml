@@ -125,22 +125,25 @@
     </build>
 
     <!-- Second Proxy -->
-    <artifactId>sample-hello-cicd-02</artifactId>
-    <version>v1</version>
-    <name>sample-hello-cicd-02</name>
-    <packaging>pom</packaging>
-    <pluginRepositories>
-        <pluginRepository>
-            <id>central</id>
-            <name>Maven Plugin Repository</name>
-            <url>https://repo1.maven.org/maven2</url>
-            <layout>default</layout>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
-            <releases>
-                <updatePolicy>never</updatePolicy>
-            </releases>
-        </pluginRepository>
-    </pluginRepositories>
+    <project>
+        <groupId>apigee</groupId>
+        <artifactId>sample-hello-cicd-02</artifactId>
+        <version>v1</version>
+        <name>sample-hello-cicd-02</name>
+        <packaging>pom</packaging>
+        <pluginRepositories>
+            <pluginRepository>
+                <id>central</id>
+                <name>Maven Plugin Repository</name>
+                <url>https://repo1.maven.org/maven2</url>
+                <layout>default</layout>
+                <snapshots>
+                    <enabled>false</enabled>
+                </snapshots>
+                <releases>
+                    <updatePolicy>never</updatePolicy>
+                </releases>
+            </pluginRepository>
+        </pluginRepositories>
+    </project>
 </project>
