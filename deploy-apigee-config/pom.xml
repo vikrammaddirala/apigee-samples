@@ -88,12 +88,12 @@
                             <resources>
                                 <resource>
                                     <!--source -->
-                                    <directory>${project.root.dir}/config/org</directory>
+                                    <directory>${project.root.dir}/deploy-apigee-config/config/org</directory>
                                     <filtering>true</filtering>
                                 </resource>
                             </resources>
                             <!--target -->
-                            <outputDirectory>${target.root.dir}/config/org</outputDirectory>
+                            <outputDirectory>${target.root.dir}/deploy-apigee-config/config/org</outputDirectory>
                         </configuration>
                     </execution>
                     <execution>
@@ -107,12 +107,12 @@
                             <resources>
                                 <resource>
                                     <!--source -->
-                                    <directory>${project.root.dir}/config/env/default-dev</directory>
+                                    <directory>${project.root.dir}/deploy-apigee-config/config/env/default-dev</directory>
                                     <filtering>true</filtering>
                                 </resource>
                             </resources>
                             <!--target -->
-                            <outputDirectory>${target.root.dir}/config/env/${env}</outputDirectory>
+                            <outputDirectory>${target.root.dir}/deploy-apigee-config/config/env/${env}</outputDirectory>
                         </configuration>
                     </execution>
                 </executions>
@@ -132,7 +132,7 @@
                 <configuration>
                     <basedir>${target.root.dir}</basedir>
                     <includes>
-                        <include>config/org/apiProducts.json</include>
+                        <include>deploy-apigee-config/config/org/apiProducts.json</include>
                     </includes>
                     <replacements>
                         <replacement>
