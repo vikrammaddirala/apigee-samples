@@ -30,7 +30,7 @@ steps:
     args:
       - -c
       - |
-        mvn -f pom.xml -ntp process-resources \
+        mvn -f deploy-apigee-config/pom.xml -ntp process-resources \
           -Dorg=$PROJECT_ID -Denv=$_APIGEE_TEST_ENV
   - name: 'gcr.io/cloud-builders/mvn'
     id: "Push Apigee Environment configurations"
@@ -40,7 +40,7 @@ steps:
       - |
         # Read environment variables from disk
         source /workspace/build_vars &&
-        mvn -f pom.xml -ntp apigee-config:targetservers \
+        mvn -f deploy-apigee-config/pom.xml -ntp apigee-config:targetservers \
           apigee-config:keyvaluemaps -Pdev \
           -Dorg=$PROJECT_ID -Denv=$_APIGEE_TEST_ENV \
           -Dbearer=${build_token} -Doptions=create
@@ -52,7 +52,7 @@ steps:
       - |
         # Read environment variables from disk
         source /workspace/build_vars &&
-        mvn -f pom.xml -ntp apigee-config:apiproducts \
+        mvn -f deploy-apigee-config/pom.xml -ntp apigee-config:apiproducts \
           apigee-config:developers apigee-config:apps -Pdev \
           -Dorg=$PROJECT_ID -Denv=$_APIGEE_TEST_ENV \
           -Dbearer=${build_token} -Doptions=create
