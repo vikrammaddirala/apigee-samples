@@ -107,7 +107,7 @@
                             <resources>
                                 <resource>
                                     <!--source -->
-                                    <directory>${project.root.dir}/config/env/test</directory>
+                                    <directory>${project.root.dir}/config/env/default-dev</directory>
                                     <filtering>true</filtering>
                                 </resource>
                             </resources>
