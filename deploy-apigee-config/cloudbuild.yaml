@@ -40,7 +40,7 @@ steps:
       - |
         # Read environment variables from disk
         source /workspace/build_vars &&
-        mvn -f pom.xml -ntp apigee-config:targetservers \
+        mvn -f deploy-apigee-config/pom.xml -ntp apigee-config:targetservers \
           apigee-config:keyvaluemaps -Pdev \
           -Dorg=$PROJECT_ID -Denv=$_APIGEE_TEST_ENV \
           -Dbearer=${build_token} -Doptions=create
