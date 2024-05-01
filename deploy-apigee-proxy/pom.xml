@@ -89,7 +89,7 @@
                                     <directory>${project.root.dir}</directory>
                                     <filtering>true</filtering>
                                     <includes>
-                                        <include>proxy1/**</include>
+                                        <include>apiproxy/**</include>
                                     </includes>
                                 </resource>
                             </resources>
