@@ -18,5 +18,5 @@ export APIGEE_ENV="default-dev"
 PROJECT_NUMBER="$(gcloud projects describe $PROJECT --format="value(projectNumber)")"
 export PROJECT_NUMBER
 export CLOUD_BUILD_SA="$PROJECT_NUMBER@cloudbuild.gserviceaccount.com"
-
+export _APIGEE_TEST_ENV=$APIGEE_ENV
 gcloud config set project $PROJECT
