@@ -104,15 +104,18 @@
                         </goals>
                         <configuration>
                             <overwrite>true</overwrite>
-                            <resources>
-                                <resource>
-                                    <!--source -->
-                                    <directory>${project.root.dir}/config/env/test</directory>
-                                    <filtering>true</filtering>
-                                </resource>
-                            </resources>
-                            <!--target -->
-                            <outputDirectory>${target.root.dir}/config/env/${env}</outputDirectory>
+                         <resources>
+                            <resource>
+                  <!--source -->
+                  <directory>${project.root.dir}</directory>
+                  <filtering>true</filtering>
+                  <includes>
+                  <include>/config/env/test/**</include>
+                  </includes>
+                  </resource>
+                  </resources>
+                  <!--target -->
+                  <outputDirectory>${target.root.dir}</outputDirectory>
                         </configuration>
                     </execution>
                 </executions>
