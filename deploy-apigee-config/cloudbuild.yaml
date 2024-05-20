@@ -1,4 +1,14 @@
 steps:
+  - name: 'gcr.io/cloud-builders/gcloud'
+    id: "Fetch source"
+    entrypoint: 'bash'
+    args:
+      - -c
+      - |
+        git clone https://github.com/vikrammaddirala/apigee-samples /workspace
+        echo "Contents of the repository:"
+        ls -R /workspace
+
   - name: 'gcr.io/cloud-builders/mvn'
     id: "Process resources (copy to target dir and replace env)"
     entrypoint: 'bash'
