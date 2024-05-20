@@ -1,15 +1,4 @@
 steps:
-  - name: 'gcr.io/cloud-builders/gcloud'
-    id: variables
-    entrypoint: 'bash'
-    args:
-      - -c
-      - |
-        export build_token=\"$(gcloud auth application-default print-access-token)\"
-
-        # write all "build_" variables to the persistent volume "/workspace"
-        env | grep "^build_" > /workspace/build_vars
-
   - name: 'gcr.io/cloud-builders/mvn'
     id: "Process resources (copy to target dir and replace env)"
     entrypoint: 'bash'
@@ -17,10 +6,12 @@ steps:
       - -c
       - |
         mvn -f deploy-apigee-config/pom.xml -ntp process-resources -Dorg=$PROJECT_ID -Denv=$_APIGEE_TEST_ENV
-        mkdir -p /workspace/target/config/env/test
+        mkdir -p /workspace/target/config/env/default-dev
         mkdir -p /workspace/target/config/org
-        echo "Contents of /workspace/target/config/env/test:"
-        ls -R /workspace/target/config/env/test
+        cp -r config/env/default-dev/* /workspace/target/config/env/default-dev/
+        cp -r config/org/* /workspace/target/config/org/
+        echo "Contents of /workspace/target/config/env/default-dev:"
+        ls -R /workspace/target/config/env/default-dev
         echo "Contents of /workspace/target/config/org:"
         ls -R /workspace/target/config/org
 
@@ -30,6 +21,4 @@ steps:
     args:
       - -c
       - |
-        # Read environment variables from disk
-        source /workspace/build_vars &&
-        mvn -f deploy-apigee-config/pom.xml -ntp apigee-config:targetservers apigee-config:keyvaluemaps -Pdev -Dorg=$PROJECT_ID -Denv=$_APIGEE_TEST_ENV -Dbearer=${build_token} -Doptions=create
+        mvn -f deploy-apigee-config/pom.xml -ntp apigee-config:targetservers apigee-config:keyvaluemaps -Pdev -Dorg=$PROJECT_ID -Denv=$_APIGEE_TEST_ENV
