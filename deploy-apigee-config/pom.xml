@@ -20,7 +20,6 @@
     <version>v1</version>
     <name>sample-config-cicd</name>
     <packaging>pom</packaging>
-
     <pluginRepositories>
         <pluginRepository>
             <id>central</id>
@@ -48,17 +47,16 @@
     <profiles>
         <profile>
             <id>dev</id>
-            <activation>
-                <activeByDefault>true</activeByDefault>
-            </activation>
             <properties>
-                <apigee.env>default-dev</apigee.env>
+                <apigee.profile>dev</apigee.profile>
+                <apigee.env>${env}</apigee.env>
                 <apigee.hosturl>https://apigee.googleapis.com</apigee.hosturl>
                 <apigee.apiversion>v1</apigee.apiversion>
                 <apigee.org>${org}</apigee.org>
                 <apigee.options>override</apigee.options>
                 <apigee.bearer>${bearer}</apigee.bearer>
-                <apigee.config.dir>${project.root.dir}/target/config</apigee.config.dir>
+                <apigee.config.dir>./target/config</apigee.config.dir>
+                <apigee.config.options>${options}</apigee.config.options>
             </properties>
         </profile>
     </profiles>
@@ -89,12 +87,12 @@
                             <overwrite>true</overwrite>
                             <resources>
                                 <resource>
-                                    <!-- source -->
+                                    <!--source -->
                                     <directory>${project.root.dir}/config/org</directory>
                                     <filtering>true</filtering>
                                 </resource>
                             </resources>
-                            <!-- target -->
+                            <!--target -->
                             <outputDirectory>${target.root.dir}/config/org</outputDirectory>
                         </configuration>
                     </execution>
@@ -108,13 +106,13 @@
                             <overwrite>true</overwrite>
                             <resources>
                                 <resource>
-                                    <!-- source -->
-                                    <directory>${project.root.dir}/config/env/${apigee.env}</directory>
+                                    <!--source -->
+                                    <directory>${project.root.dir}/config/env/test</directory>
                                     <filtering>true</filtering>
                                 </resource>
                             </resources>
-                            <!-- target -->
-                            <outputDirectory>${target.root.dir}/config/env/${apigee.env}</outputDirectory>
+                            <!--target -->
+                            <outputDirectory>${target.root.dir}/config/env/${env}</outputDirectory>
                         </configuration>
                     </execution>
                 </executions>
@@ -139,7 +137,7 @@
                     <replacements>
                         <replacement>
                             <token>@env</token>
-                            <value>${apigee.env}</value>
+                            <value>${env}</value>
                         </replacement>
                     </replacements>
                 </configuration>
@@ -150,57 +148,43 @@
                 <version>${apigee.config.version}</version>
                 <executions>
                     <execution>
-                        <id>create-target-servers</id>
-                        <phase>install</phase>
-                        <goals>
-                            <goal>targetservers</goal>
-                        </goals>
-                        <configuration>
-                            <targetservers.path>${apigee.config.dir}/env/${apigee.env}/targetServers.json</targetservers.path>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>create-kvm</id>
-                        <phase>install</phase>
+                        <id>create-config-keyvaluemaps</id>
+                        <phase>package</phase>
                         <goals>
                             <goal>keyvaluemaps</goal>
                         </goals>
-                        <configuration>
-                            <keyvaluemaps.path>${apigee.config.dir}/env/${apigee.env}/kvms.json</keyvaluemaps.path>
-                        </configuration>
                     </execution>
                     <execution>
-                        <id>create-apiproducts</id>
+                        <id>create-config-targetservers</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>targetservers</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>create-config-apiproducts</id>
                         <phase>install</phase>
                         <goals>
                             <goal>apiproducts</goal>
                         </goals>
-                        <configuration>
-                            <apiproducts.path>${apigee.config.dir}/org/apiProducts.json</apiproducts.path>
-                        </configuration>
                     </execution>
                     <execution>
-                        <id>create-developers</id>
+                        <id>create-config-developers</id>
                         <phase>install</phase>
                         <goals>
                             <goal>developers</goal>
                         </goals>
-                        <configuration>
-                            <developers.path>${apigee.config.dir}/org/developers.json</developers.path>
-                        </configuration>
                     </execution>
                     <execution>
-                        <id>create-apps</id>
+                        <id>create-config-apps</id>
                         <phase>install</phase>
                         <goals>
                             <goal>apps</goal>
                         </goals>
-                        <configuration>
-                            <apps.path>${apigee.config.dir}/org/developerApps.json</apps.path>
-                        </configuration>
                     </execution>
                 </executions>
             </plugin>
         </plugins>
     </build>
+
 </project>
