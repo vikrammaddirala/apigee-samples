@@ -5,9 +5,7 @@ steps:
     args:
       - -c
       - |
-        export build_token=\"$(gcloud auth application-default \
-          print-access-token)\"
-
+        export build_token=\"$(gcloud auth application-default print-access-token)\"
         # write all "build_" variables to the persistent volume "/workspace"
         env | grep "^build_" > /workspace/build_vars
   - name: 'gcr.io/cloud-builders/mvn'
@@ -16,6 +14,7 @@ steps:
     args:
       - -c
       - |
+        echo "Processing resources..."
         mvn -f deploy-apigee-config/pom.xml -ntp process-resources \
           -Dorg=$PROJECT_ID -Denv=$_APIGEE_TEST_ENV
   - name: 'ubuntu'
@@ -32,22 +31,25 @@ steps:
     args:
       - -c
       - |
-        # Read environment variables from disk
-        echo current working directory
-        echo pwd
-        source /workspace/build_vars &&
+        echo "Pushing Apigee Environment configurations..."
+        echo "Current working directory: $(pwd)"
+        source /workspace/build_vars
+        echo "Environment Variables:"
+        env
         mvn -f deploy-apigee-config/pom.xml -ntp apigee-config:targetservers \
           apigee-config:keyvaluemaps -Pdev \
           -Dorg=$PROJECT_ID -Denv=$_APIGEE_TEST_ENV \
-          -Dbearer=${build_token} -Doptions=update
+          -Dbearer=${build_token} -Doptions=create
   - name: 'gcr.io/cloud-builders/mvn'
     id: "Push Apigee Org configurations"
     entrypoint: 'bash'
     args:
       - -c
       - |
-        # Read environment variables from disk
-        source /workspace/build_vars &&
+        echo "Pushing Apigee Org configurations..."
+        source /workspace/build_vars
+        echo "Environment Variables:"
+        env
         mvn -f deploy-apigee-config/pom.xml -ntp apigee-config:apiproducts \
           -Dapiproducts.path=deploy-apigee-config/config/org/apiProducts.json \
           apigee-config:developers \
@@ -55,4 +57,4 @@ steps:
           apigee-config:apps \
           -Dapps.path=deploy-apigee-config/config/org/developerApps.json -Pdev \
           -Dorg=$PROJECT_ID -Denv=$_APIGEE_TEST_ENV \
-          -Dbearer=${build_token} -Doptions=update
+          -Dbearer=${build_token} -Doptions=create
