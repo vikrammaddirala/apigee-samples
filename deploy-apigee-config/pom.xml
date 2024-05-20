@@ -1,82 +1,206 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+ Copyright 2023 Google LLC
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+      http://www.apache.org/licenses/LICENSE-2.0
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
 <project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <groupId>com.example</groupId>
+    <groupId>apigee</groupId>
     <artifactId>sample-config-cicd</artifactId>
-    <version>1.0.0</version>
+    <version>v1</version>
+    <name>sample-config-cicd</name>
     <packaging>pom</packaging>
 
-    <properties>
-        <apigee.config.plugin.version>2.4.4</apigee.config.plugin.version>
-        <org>${env.ORG}</org>
-        <env>${env.ENV}</env>
-        <bearer>${env.BEARER}</bearer>
-    </properties>
+    <pluginRepositories>
+        <pluginRepository>
+            <id>central</id>
+            <name>Maven Plugin Repository</name>
+            <url>https://repo1.maven.org/maven2</url>
+            <layout>default</layout>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+            <releases>
+                <updatePolicy>never</updatePolicy>
+            </releases>
+        </pluginRepository>
+    </pluginRepositories>
 
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>apigee</groupId>
-                <artifactId>apigee-config-maven-plugin</artifactId>
-                <version>${apigee.config.plugin.version}</version>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>targetservers</goal>
-                            <goal>keyvaluemaps</goal>
-                            <goal>apiproducts</goal>
-                            <goal>developers</goal>
-                            <goal>apps</goal>
-                        </goals>
-                    </execution>
-                </executions>
-                <configuration>
-                    <apigeeConfigDir>deploy-apigee-config/target/config</apigeeConfigDir>
-                    <org>${org}</org>
-                    <env>${env}</env>
-                    <bearer>${bearer}</bearer>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <org.slf4j.simpleLogger.defaultLogLevel>info</org.slf4j.simpleLogger.defaultLogLevel>
+        <project.root.dir>${basedir}</project.root.dir>
+        <target.root.dir>${basedir}/target</target.root.dir>
+        <apigee.config.version>2.4.4</apigee.config.version>
+    </properties>
 
     <profiles>
         <profile>
-            <id>default</id>
+            <id>dev</id>
             <activation>
                 <activeByDefault>true</activeByDefault>
             </activation>
             <properties>
-                <org>${env.ORG}</org>
-                <env>${env.ENV}</env>
-                <bearer>${env.BEARER}</bearer>
-            </properties>
-        </profile>
-        <profile>
-            <id>dev</id>
-            <properties>
-                <org>${env.ORG}</org>
-                <env>default-dev</env>
-                <bearer>${env.BEARER}</bearer>
-            </properties>
-        </profile>
-        <profile>
-            <id>test</id>
-            <properties>
-                <org>${env.ORG}</org>
-                <env>test</env>
-                <bearer>${env.BEARER}</bearer>
-            </properties>
-        </profile>
-        <profile>
-            <id>prod</id>
-            <properties>
-                <org>${env.ORG}</org>
-                <env>prod</env>
-                <bearer>${env.BEARER}</bearer>
+                <apigee.env>default-dev</apigee.env>
+                <apigee.hosturl>https://apigee.googleapis.com</apigee.hosturl>
+                <apigee.apiversion>v1</apigee.apiversion>
+                <apigee.org>${org}</apigee.org>
+                <apigee.options>override</apigee.options>
+                <apigee.bearer>${bearer}</apigee.bearer>
+                <apigee.config.dir>${project.root.dir}/target/config</apigee.config.dir>
             </properties>
         </profile>
     </profiles>
 
+    <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>com.apigee.edge.config</groupId>
+                    <artifactId>apigee-config-maven-plugin</artifactId>
+                    <version>${apigee.config.version}</version>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+        <plugins>
+            <!-- copy the full config folder to target folder -->
+            <plugin>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>2.6</version>
+                <executions>
+                    <execution>
+                        <id>copy-org-config-resources</id>
+                        <phase>process-resources</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <overwrite>true</overwrite>
+                            <resources>
+                                <resource>
+                                    <!-- source -->
+                                    <directory>${project.root.dir}/config/org</directory>
+                                    <filtering>true</filtering>
+                                </resource>
+                            </resources>
+                            <!-- target -->
+                            <outputDirectory>${target.root.dir}/config/org</outputDirectory>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>copy-env-config-resources</id>
+                        <phase>process-resources</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <overwrite>true</overwrite>
+                            <resources>
+                                <resource>
+                                    <!-- source -->
+                                    <directory>${project.root.dir}/config/env/${apigee.env}</directory>
+                                    <filtering>true</filtering>
+                                </resource>
+                            </resources>
+                            <!-- target -->
+                            <outputDirectory>${target.root.dir}/config/env/${apigee.env}</outputDirectory>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>com.google.code.maven-replacer-plugin</groupId>
+                <artifactId>replacer</artifactId>
+                <version>1.5.2</version>
+                <executions>
+                    <execution>
+                        <phase>process-resources</phase>
+                        <goals>
+                            <goal>replace</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <basedir>${target.root.dir}</basedir>
+                    <includes>
+                        <include>config/org/apiProducts.json</include>
+                    </includes>
+                    <replacements>
+                        <replacement>
+                            <token>@env</token>
+                            <value>${apigee.env}</value>
+                        </replacement>
+                    </replacements>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>com.apigee.edge.config</groupId>
+                <artifactId>apigee-config-maven-plugin</artifactId>
+                <version>${apigee.config.version}</version>
+                <executions>
+                    <execution>
+                        <id>create-target-servers</id>
+                        <phase>install</phase>
+                        <goals>
+                            <goal>targetservers</goal>
+                        </goals>
+                        <configuration>
+                            <targetservers.path>${apigee.config.dir}/env/${apigee.env}/targetServers.json</targetservers.path>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>create-kvm</id>
+                        <phase>install</phase>
+                        <goals>
+                            <goal>keyvaluemaps</goal>
+                        </goals>
+                        <configuration>
+                            <keyvaluemaps.path>${apigee.config.dir}/env/${apigee.env}/kvms.json</keyvaluemaps.path>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>create-apiproducts</id>
+                        <phase>install</phase>
+                        <goals>
+                            <goal>apiproducts</goal>
+                        </goals>
+                        <configuration>
+                            <apiproducts.path>${apigee.config.dir}/org/apiProducts.json</apiproducts.path>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>create-developers</id>
+                        <phase>install</phase>
+                        <goals>
+                            <goal>developers</goal>
+                        </goals>
+                        <configuration>
+                            <developers.path>${apigee.config.dir}/org/developers.json</developers.path>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>create-apps</id>
+                        <phase>install</phase>
+                        <goals>
+                            <goal>apps</goal>
+                        </goals>
+                        <configuration>
+                            <apps.path>${apigee.config.dir}/org/developerApps.json</apps.path>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
 </project>
