@@ -167,6 +167,9 @@
                         <goals>
                             <goal>apiproducts</goal>
                         </goals>
+                        <configuration>
+                            <apiproducts.path>${project.root.dir}/config/apiProducts.json</apiproducts.path>
+                        </configuration>
                     </execution>
                     <execution>
                         <id>create-config-developers</id>
@@ -174,6 +177,9 @@
                         <goals>
                             <goal>developers</goal>
                         </goals>
+                        <configuration>
+                            <developers.path>${project.root.dir}/config/developers.json</developers.path>
+                        </configuration>
                     </execution>
                     <execution>
                         <id>create-config-apps</id>
@@ -181,10 +187,12 @@
                         <goals>
                             <goal>apps</goal>
                         </goals>
+                        <configuration>
+                            <apps.path>${project.root.dir}/config/developerApps.json</apps.path>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>
         </plugins>
     </build>
-
 </project>
