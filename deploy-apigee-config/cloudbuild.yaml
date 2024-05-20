@@ -34,8 +34,7 @@ steps:
       - |
         # Read environment variables from disk
         echo current working directory
-        echo $_WORK_DIR
-        echo "$_WORK_DIR"
+        echo pwd
         source /workspace/build_vars &&
         mvn -f deploy-apigee-config/pom.xml -ntp apigee-config:targetservers \
           apigee-config:keyvaluemaps -Pdev \
