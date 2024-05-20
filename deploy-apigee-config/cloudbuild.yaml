@@ -39,7 +39,7 @@ steps:
         mvn -f deploy-apigee-config/pom.xml -ntp apigee-config:targetservers \
           apigee-config:keyvaluemaps -Pdev \
           -Dorg=$PROJECT_ID -Denv=$_APIGEE_TEST_ENV \
-          -Dbearer=${build_token} -Doptions=create
+          -Dbearer=${build_token} -Doptions=update
   - name: 'gcr.io/cloud-builders/mvn'
     id: "Push Apigee Org configurations"
     entrypoint: 'bash'
@@ -49,10 +49,10 @@ steps:
         # Read environment variables from disk
         source /workspace/build_vars &&
         mvn -f deploy-apigee-config/pom.xml -ntp apigee-config:apiproducts \
-          -Dapiproducts.path=deploy-apigee-config/config/apiProducts.json \
+          -Dapiproducts.path=deploy-apigee-config/config/org/apiProducts.json \
           apigee-config:developers \
-          -Ddevelopers.path=deploy-apigee-config/config/developers.json \
+          -Ddevelopers.path=deploy-apigee-config/config/org/developers.json \
           apigee-config:apps \
-          -Dapps.path=deploy-apigee-config/config/developerApps.json -Pdev \
+          -Dapps.path=deploy-apigee-config/config/org/developerApps.json -Pdev \
           -Dorg=$PROJECT_ID -Denv=$_APIGEE_TEST_ENV \
-          -Dbearer=${build_token} -Doptions=create
+          -Dbearer=${build_token} -Doptions=update
