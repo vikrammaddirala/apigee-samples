@@ -107,7 +107,7 @@
                             <resources>
                                 <resource>
                                     <!--source -->
-                                    <directory>${project.root.dir}/config/env/test</directory>
+                                    <directory>${project.root.dir}/config/env/${env}</directory>
                                     <filtering>true</filtering>
                                 </resource>
                             </resources>
@@ -153,6 +153,9 @@
                         <goals>
                             <goal>keyvaluemaps</goal>
                         </goals>
+                        <configuration>
+                            <keyvaluemaps.path>${project.root.dir}/config/env/${env}/kvms.json</keyvaluemaps.path>
+                        </configuration>
                     </execution>
                     <execution>
                         <id>create-config-targetservers</id>
@@ -160,6 +163,9 @@
                         <goals>
                             <goal>targetservers</goal>
                         </goals>
+                        <configuration>
+                            <targetservers.path>${project.root.dir}/config/env/${env}/targetServers.json</targetservers.path>
+                        </configuration>
                     </execution>
                     <execution>
                         <id>create-config-apiproducts</id>
@@ -168,7 +174,7 @@
                             <goal>apiproducts</goal>
                         </goals>
                         <configuration>
-                            <apiproducts.path>${project.root.dir}/config/apiProducts.json</apiproducts.path>
+                            <apiproducts.path>${project.root.dir}/config/org/apiProducts.json</apiproducts.path>
                         </configuration>
                     </execution>
                     <execution>
@@ -178,7 +184,7 @@
                             <goal>developers</goal>
                         </goals>
                         <configuration>
-                            <developers.path>${project.root.dir}/config/developers.json</developers.path>
+                            <developers.path>${project.root.dir}/config/org/developers.json</developers.path>
                         </configuration>
                     </execution>
                     <execution>
@@ -188,7 +194,7 @@
                             <goal>apps</goal>
                         </goals>
                         <configuration>
-                            <apps.path>${project.root.dir}/config/developerApps.json</apps.path>
+                            <apps.path>${project.root.dir}/config/org/developerApps.json</apps.path>
                         </configuration>
                     </execution>
                 </executions>
