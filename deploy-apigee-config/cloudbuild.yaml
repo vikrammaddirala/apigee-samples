@@ -35,7 +35,7 @@ steps:
         mvn -f deploy-apigee-config/pom.xml -ntp apigee-config:targetservers \
           apigee-config:keyvaluemaps -Pdev \
           -Dorg=$PROJECT_ID -Denv=$_APIGEE_TEST_ENV \
-          -Dbearer=${build_token} -Doptions=create
+          -Dbearer=${build_token} -Doptions=create -X
 
   - name: 'gcr.io/cloud-builders/mvn'
     id: "Push Apigee Org configurations"
@@ -51,4 +51,4 @@ steps:
           apigee-config:apps \
           -Dapps.path=deploy-apigee-config/config/org/developerApps.json -Pdev \
           -Dorg=$PROJECT_ID -Denv=$_APIGEE_TEST_ENV \
-          -Dbearer=${build_token} -Doptions=create
+          -Dbearer=${build_token} -Doptions=create -X
