@@ -157,6 +157,7 @@
                         </goals>
                         <configuration>
                             <targetservers.path>${apigee.config.dir}/env/${apigee.env}/targetServers.json</targetservers.path>
+                            <skip>false</skip>
                         </configuration>
                     </execution>
                     <execution>
