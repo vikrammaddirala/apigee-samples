@@ -5,6 +5,7 @@ steps:
     args:
       - -c
       - |
+        source /workspace/env.sh
         export build_token=\"$(gcloud auth application-default print-access-token)\"
         env | grep "^build_" > /workspace/build_vars
 
@@ -14,6 +15,7 @@ steps:
     args:
       - -c
       - |
+        source /workspace/env.sh
         mvn -f deploy-apigee-config/pom.xml -ntp process-resources \
           -Dorg=$PROJECT_ID -Denv=$_APIGEE_TEST_ENV
 
@@ -23,6 +25,7 @@ steps:
     args:
       - -c
       - |
+        source /workspace/env.sh
         ls -R deploy-apigee-config/target/config
 
   - name: 'gcr.io/cloud-builders/mvn'
@@ -31,6 +34,7 @@ steps:
     args:
       - -c
       - |
+        source /workspace/env.sh
         source /workspace/build_vars
         mvn -f deploy-apigee-config/pom.xml -ntp -X apigee-config:targetservers \
           apigee-config:keyvaluemaps -Pdev \
@@ -43,6 +47,7 @@ steps:
     args:
       - -c
       - |
+        source /workspace/env.sh
         source /workspace/build_vars
         mvn -f deploy-apigee-config/pom.xml -ntp -X apigee-config:apiproducts \
           -Dapiproducts.path=deploy-apigee-config/config/org/apiProducts.json \
