@@ -51,4 +51,4 @@ steps:
           apigee-config:apps \
           -Dapps.path=deploy-apigee-config/config/org/developerApps.json -Pdev \
           -Dorg=$PROJECT_ID -Denv=$_APIGEE_TEST_ENV \
-          -Dbearer=${build_token} -Doptions=create
+          -Dbearer=${build_token} -Dapigee.config.options=create
