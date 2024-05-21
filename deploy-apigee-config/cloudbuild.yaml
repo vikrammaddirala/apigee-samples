@@ -32,7 +32,7 @@ steps:
       - -c
       - |
         source /workspace/build_vars
-        mvn -f deploy-apigee-config/pom.xml -ntp apigee-config:targetservers \
+        mvn -f deploy-apigee-config/pom.xml -ntp -X apigee-config:targetservers \
           apigee-config:keyvaluemaps -Pdev \
           -Dorg=$PROJECT_ID -Denv=$_APIGEE_TEST_ENV \
           -Dbearer=${build_token} -Doptions=create
@@ -44,7 +44,7 @@ steps:
       - -c
       - |
         source /workspace/build_vars
-        mvn -f deploy-apigee-config/pom.xml -ntp apigee-config:apiproducts \
+        mvn -f deploy-apigee-config/pom.xml -ntp -X apigee-config:apiproducts \
           -Dapiproducts.path=deploy-apigee-config/config/org/apiProducts.json \
           apigee-config:developers \
           -Ddevelopers.path=deploy-apigee-config/config/org/developers.json \
