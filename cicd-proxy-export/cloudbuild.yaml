@@ -4,8 +4,8 @@ steps:
     args: ['cp', 'gs://${_BUCKET_NAME}/${_PROXY_NAME}-${_REVISION}.zip', './']
     id: 'Download Proxy Bundle'
 
-  # Step 2: Unzip the proxy bundle using Cloud Build Builder
-  - name: 'gcr.io/cloud-builders/unzip'
+  # Step 2: Unzip the proxy bundle using Cloud Build Builder with a specific version tag
+  - name: 'gcr.io/cloud-builders/unzip:0.1'  # Specify the version tag here
     args: ['-o', '${_PROXY_NAME}-${_REVISION}.zip', '-d', './']
     id: 'Unzip Proxy Bundle'
 
