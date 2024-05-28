@@ -17,14 +17,13 @@ steps:
         echo "Downloading proxy bundle from GCS..."
         gsutil cp gs://proxy-storage-01/helloworld-1.zip /workspace/proxy.zip
 
-  - name: 'alpine'
+  - name: 'gcr.io/cloud-builders/unzip'
     id: "Unzip Proxy Bundle"
-    entrypoint: 'sh'
+    entrypoint: 'bash'
     args:
       - -c
       - |
-        apk add --no-cache unzip
-        unzip -d /workspace/proxy /workspace/proxy.zip
+        unzip -o /workspace/proxy.zip -d /workspace/proxy
 
   - name: 'gcr.io/cloud-builders/curl'
     id: "Deploy Proxy Bundle"
