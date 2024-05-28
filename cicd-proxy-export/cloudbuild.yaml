@@ -27,6 +27,12 @@ steps:
         ls -l /workspace/proxy.zip
         apt-get update && apt-get install -y file
         file /workspace/proxy.zip
+        if file /workspace/proxy.zip | grep -q 'Zip archive data'; then
+          echo "Proxy bundle is a valid ZIP file"
+        else
+          echo "Proxy bundle is not a valid ZIP file"
+          exit 1
+        fi
 
   - name: 'alpine'
     id: "Unzip Proxy Bundle"
@@ -44,12 +50,12 @@ steps:
       - -c
       - |
         source /workspace/build_vars
-        echo "Deploying proxy to Apigee..."
-        curl -X POST "https://apigee.googleapis.com/v1/organizations/apigee-x-379708/apis?action=import&name=helloworld" \
+        echo "Deploying proxy to Apigee test environment..."
+        curl -X POST "https://apigee.googleapis.com/v1/organizations/apigee-x-379708/environments/test-env/apis?action=import&name=helloworld" \
         -H "Authorization: Bearer ${build_token}" \
         -F "file=@/workspace/proxy.zip"
 
 # Substitute with appropriate values
 substitutions:
   _APIGEE_DEV_ENV: "default-dev"
-  _APIGEE_UAT_ENV: "test-env"
+  _APIGEE_TEST_ENV: "test-env"
