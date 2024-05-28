@@ -1,45 +1,45 @@
 steps:
-# Step 1: Download the proxy bundle from Google Cloud Storage
-- name: 'gcr.io/cloud-builders/gsutil'
-  args: ['cp', 'gs://${_BUCKET_NAME}/${_PROXY_NAME}-${_REVISION}.zip', './']
-  id: 'Download Proxy Bundle'
+  # Step 1: Download the proxy bundle from Google Cloud Storage
+  - name: 'gcr.io/cloud-builders/gsutil'
+    args: ['cp', 'gs://${_BUCKET_NAME}/${_PROXY_NAME}-${_REVISION}.zip', './']
+    id: 'Download Proxy Bundle'
 
-# Step 2: Unzip the proxy bundle
-- name: 'gcr.io/cloud-builders/unzip:0.1'
-  args: ['-o', '${_PROXY_NAME}-${_REVISION}.zip', '-d', './']
-  id: 'Unzip Proxy Bundle'
+  # Step 2: Unzip the proxy bundle using Cloud Build Builder
+  - name: 'gcr.io/cloud-builders/unzip'
+    args: ['-o', '${_PROXY_NAME}-${_REVISION}.zip', '-d', './']
+    id: 'Unzip Proxy Bundle'
 
-# Step 3: Build the project with Maven (if required)
-- name: 'maven:3.6.3-jdk-8'
-  args: ['mvn', 'clean', 'install']
-  id: 'Build with Maven'
-
-# Step 4: Import the proxy into the target environment
-- name: 'gcr.io/cloud-builders/curl'
-  args:
-  - '-X'
-  - 'POST'
-  - '-H'
-  - 'Authorization: Bearer $(gcloud auth print-access-token)'
-  - '-F'
-  - 'file=@./${_PROXY_NAME}'
-  - 'https://apigee.googleapis.com/v1/organizations/apigee-x-379708/apis?action=import&name=${_PROXY_NAME}'
-  id: 'Import Proxy'
-
-# Step 5: Deploy the proxy to the target environment
-- name: 'gcr.io/cloud-builders/curl'
-  args:
-  - '-X'
-  - 'POST'
-  - '-H'
-  - 'Authorization: Bearer $(gcloud auth print-access-token)'
-  - '-H'
-  - 'Content-Type: application/json'
-  - '-d'
-  - '{
-      "name": "${_PROXY_NAME}",
-      "environment": "${_TARGET_ENVIRONMENT}",
-      "revision": "${_REVISION}"
-    }'
-  - 'https://apigee.googleapis.com/v1/organizations/apigee-x-379708/environments/${_TARGET_ENVIRONMENT}/apis/${_PROXY_NAME}/revisions/${_REVISION}/deployments'
-  id: 'Deploy Proxy'
+  # Step 3: Build the project with Maven (if required)
+  - name: 'maven:3.6.3-jdk-8'
+    args: ['mvn', 'clean', 'install']
+    id: 'Build with Maven'
+  
+  # Step 4: Import the proxy into the target environment
+  - name: 'gcr.io/cloud-builders/curl'
+    args:
+    - '-X'
+    - 'POST'
+    - '-H'
+    - 'Authorization: Bearer $(gcloud auth print-access-token)'
+    - '-F'
+    - 'file=@./${_PROXY_NAME}'
+    - 'https://apigee.googleapis.com/v1/organizations/apigee-x-379708/apis?action=import&name=${_PROXY_NAME}'
+    id: 'Import Proxy'
+  
+  # Step 5: Deploy the proxy to the target environment
+  - name: 'gcr.io/cloud-builders/curl'
+    args:
+    - '-X'
+    - 'POST'
+    - '-H'
+    - 'Authorization: Bearer $(gcloud auth print-access-token)'
+    - '-H'
+    - 'Content-Type: application/json'
+    - '-d'
+    - '{
+        "name": "${_PROXY_NAME}",
+        "environment": "${_TARGET_ENVIRONMENT}",
+        "revision": "${_REVISION}"
+      }'
+    - 'https://apigee.googleapis.com/v1/organizations/apigee-x-379708/environments/${_TARGET_ENVIRONMENT}/apis/${_PROXY_NAME}/revisions/${_REVISION}/deployments'
+    id: 'Deploy Proxy'
