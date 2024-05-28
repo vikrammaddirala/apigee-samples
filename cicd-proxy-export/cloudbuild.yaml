@@ -17,6 +17,16 @@ steps:
         echo "Downloading proxy bundle from GCS..."
         gsutil cp gs://proxy-storage-01/helloworld-1.zip /workspace/proxy.zip
 
+  - name: 'ubuntu'
+    id: "Verify Proxy Bundle"
+    entrypoint: 'bash'
+    args:
+      - -c
+      - |
+        echo "Verifying downloaded proxy bundle..."
+        ls -l /workspace/proxy.zip
+        file /workspace/proxy.zip
+
   - name: 'alpine'
     id: "Unzip Proxy Bundle"
     entrypoint: 'sh'
