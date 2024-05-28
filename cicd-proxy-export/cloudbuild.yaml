@@ -1,6 +1,6 @@
 steps:
   # Step 0: Download the proxy bundle from Google Cloud Storage
-  - name: 'gcr.io/cloud-builders/gcloud'
+  - name: 'gcr.io/cloud-builders/gsutil'
     args: ['cp', 'gs://${_BUCKET_NAME}/${_PROXY_NAME}-${_REVISION}.zip', './']
     id: 'Download Proxy Bundle'
 
