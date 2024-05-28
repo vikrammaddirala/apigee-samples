@@ -5,7 +5,7 @@ steps:
   id: 'Download Proxy Bundle'
 
 # Step 2: Unzip the proxy bundle
-- name: 'gcr.io/cloud-builders/unzip'
+- name: 'gcr.io/cloud-builders/unzip:0.1'
   args: ['-o', '${_PROXY_NAME}-${_REVISION}.zip', '-d', './']
   id: 'Unzip Proxy Bundle'
 
