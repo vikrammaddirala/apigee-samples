@@ -5,11 +5,11 @@ steps:
   id: 'Download Proxy Bundle'
 
 # Step 2: Unzip the proxy bundle
-- name: 'gcr.io/cloud-builders/unzip'
+- name: 'gcr.io/cloud-builders/unzip:0.1'
   args: ['-o', '${_PROXY_NAME}-${_REVISION}.zip', '-d', './']
   id: 'Unzip Proxy Bundle'
 
-# Step 3: Build the project with Maven
+# Step 3: Build the project with Maven (if required)
 - name: 'maven:3.6.3-jdk-8'
   args: ['mvn', 'clean', 'install']
   id: 'Build with Maven'
