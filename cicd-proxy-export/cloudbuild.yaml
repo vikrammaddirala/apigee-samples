@@ -1,21 +1,39 @@
 steps:
-  - name: 'gcr.io/cloud-builders/gsutil'
-    entrypoint: 'sh'
+  - name: 'gcr.io/cloud-builders/gcloud'
+    id: variables
+    entrypoint: 'bash'
     args:
-      - '-c'
+      - -c
+      - |
+        export build_token=\"$(gcloud auth application-default print-access-token)\"
+        env | grep "^build_" > /workspace/build_vars
+
+  - name: 'gcr.io/cloud-builders/gsutil'
+    id: "Download Proxy Bundle"
+    entrypoint: 'bash'
+    args:
+      - -c
       - |
         echo "Downloading proxy bundle from GCS..."
-        gsutil cp gs://proxy-storage-01/helloworld-1.zip .
+        gsutil cp gs://proxy-storage-01/helloworld-1.zip /workspace/proxy.zip
 
   - name: 'gcr.io/cloud-builders/unzip'
-    args: ['helloworld-1.zip']
+    id: "Unzip Proxy Bundle"
+    args: ['-d', '/workspace/proxy', '/workspace/proxy.zip']
 
   - name: 'gcr.io/cloud-builders/curl'
-    entrypoint: 'sh'
+    id: "Deploy Proxy Bundle"
+    entrypoint: 'bash'
     args:
-      - '-c'
+      - -c
       - |
+        source /workspace/build_vars
         echo "Deploying proxy to Apigee..."
-        curl -X POST "https://apigee.googleapis.com/v1/organizations/apigee-x-379708/environments/test-env/apis?action=import&name=helloworld-1" \
-        -H "Authorization: Bearer $(gcloud auth print-access-token)" \
-        -F "file=@helloworld-1.zip"
+        curl -X POST "https://apigee.googleapis.com/v1/organizations/apigee-x-379708/apis?action=import&name=helloworld" \
+        -H "Authorization: Bearer ${build_token}" \
+        -F "file=@/workspace/proxy.zip"
+
+# Substitute with appropriate values
+substitutions:
+  _APIGEE_DEV_ENV: "default-dev"
+  _APIGEE_UAT_ENV: "test-env"
