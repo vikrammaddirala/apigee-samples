@@ -25,6 +25,7 @@ steps:
       - |
         echo "Verifying downloaded proxy bundle..."
         ls -l /workspace/proxy.zip
+        apt-get update && apt-get install -y file
         file /workspace/proxy.zip
 
   - name: 'alpine'
