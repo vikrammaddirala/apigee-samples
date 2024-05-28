@@ -1,11 +1,11 @@
 steps:
-  # Step 1: Download the proxy bundle from Google Cloud Storage
+  # Step 0: Download the proxy bundle from Google Cloud Storage
   - name: 'gcr.io/cloud-builders/gsutil'
     args: ['cp', 'gs://${_BUCKET_NAME}/${_PROXY_NAME}-${_REVISION}.zip', './']
     id: 'Download Proxy Bundle'
 
-  # Step 2: Unzip the proxy bundle using Cloud Build Builder with a specific version tag
-  - name: 'gcr.io/cloud-builders/unzip:0.1'  # Specify the version tag here
+  # Step 1: Unzip the proxy bundle using the latest version of Cloud Build Builder
+  - name: 'gcr.io/cloud-builders/unzip'
     args: ['-o', '${_PROXY_NAME}-${_REVISION}.zip', '-d', './']
     id: 'Unzip Proxy Bundle'
 
