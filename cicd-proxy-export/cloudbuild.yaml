@@ -1,0 +1,36 @@
+steps:
+- name: 'gcr.io/cloud-builders/gsutil'
+  args: ['cp', 'gs://${_BUCKET_NAME}/${_PROXY_NAME}-${_REVISION}.zip', './']
+  id: 'Download Proxy Bundle'
+
+- name: 'gcr.io/cloud-builders/unzip'
+  args: ['-o', '${_PROXY_NAME}-${_REVISION}.zip', '-d', './']
+  id: 'Unzip Proxy Bundle'
+
+- name: 'gcr.io/cloud-builders/curl'
+  args:
+  - '-X'
+  - 'POST'
+  - '-H'
+  - 'Authorization: Bearer $(gcloud auth print-access-token)'
+  - '-F'
+  - 'file=@./${_PROXY_NAME}'
+  - 'https://apigee.googleapis.com/v1/organizations/${_ORG}/apis?action=import&name=${_PROXY_NAME}'
+  id: 'Import Proxy'
+
+- name: 'gcr.io/cloud-builders/curl'
+  args:
+  - '-X'
+  - 'POST'
+  - '-H'
+  - 'Authorization: Bearer $(gcloud auth print-access-token)'
+  - '-H'
+  - 'Content-Type: application/json'
+  - '-d'
+  - '{
+      "name": "${_PROXY_NAME}",
+      "environment": "${_TARGET_ENVIRONMENT}",
+      "revision": "${_REVISION}"
+    }'
+  - 'https://apigee.googleapis.com/v1/organizations/${_ORG}/environments/${_TARGET_ENVIRONMENT}/apis/${_PROXY_NAME}/revisions/${_REVISION}/deployments'
+  id: 'Deploy Proxy'
