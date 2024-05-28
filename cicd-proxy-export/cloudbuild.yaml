@@ -1,45 +1,21 @@
 steps:
-  # Step 0: Download the proxy bundle from Google Cloud Storage
   - name: 'gcr.io/cloud-builders/gsutil'
-    args: ['cp', 'gs://${_BUCKET_NAME}/${_PROXY_NAME}-${_REVISION}.zip', './']
-    id: 'Download Proxy Bundle'
+    entrypoint: 'sh'
+    args:
+      - '-c'
+      - |
+        echo "Downloading proxy bundle from GCS..."
+        gsutil cp gs://proxy-storage-01/helloworld-1.zip .
 
-  # Step 1: Unzip the proxy bundle using the latest version of Cloud Build Builder
   - name: 'gcr.io/cloud-builders/unzip'
-    args: ['-o', '${_PROXY_NAME}-${_REVISION}.zip', '-d', './']
-    id: 'Unzip Proxy Bundle'
+    args: ['helloworld-1.zip']
 
-  # Step 3: Build the project with Maven (if required)
-  - name: 'maven:3.6.3-jdk-8'
-    args: ['mvn', 'clean', 'install']
-    id: 'Build with Maven'
-  
-  # Step 4: Import the proxy into the target environment
   - name: 'gcr.io/cloud-builders/curl'
+    entrypoint: 'sh'
     args:
-    - '-X'
-    - 'POST'
-    - '-H'
-    - 'Authorization: Bearer $(gcloud auth print-access-token)'
-    - '-F'
-    - 'file=@./${_PROXY_NAME}'
-    - 'https://apigee.googleapis.com/v1/organizations/apigee-x-379708/apis?action=import&name=${_PROXY_NAME}'
-    id: 'Import Proxy'
-  
-  # Step 5: Deploy the proxy to the target environment
-  - name: 'gcr.io/cloud-builders/curl'
-    args:
-    - '-X'
-    - 'POST'
-    - '-H'
-    - 'Authorization: Bearer $(gcloud auth print-access-token)'
-    - '-H'
-    - 'Content-Type: application/json'
-    - '-d'
-    - '{
-        "name": "${_PROXY_NAME}",
-        "environment": "${_TARGET_ENVIRONMENT}",
-        "revision": "${_REVISION}"
-      }'
-    - 'https://apigee.googleapis.com/v1/organizations/apigee-x-379708/environments/${_TARGET_ENVIRONMENT}/apis/${_PROXY_NAME}/revisions/${_REVISION}/deployments'
-    id: 'Deploy Proxy'
+      - '-c'
+      - |
+        echo "Deploying proxy to Apigee..."
+        curl -X POST "https://apigee.googleapis.com/v1/organizations/apigee-x-379708/environments/test-env/apis?action=import&name=helloworld-1" \
+        -H "Authorization: Bearer $(gcloud auth print-access-token)" \
+        -F "file=@helloworld-1.zip"
