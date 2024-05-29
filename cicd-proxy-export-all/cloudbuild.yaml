@@ -13,24 +13,24 @@ steps:
       apk add --no-cache curl
       curl -o /workspace/proxies.zip https://storage.googleapis.com/proxy-storage-01/proxies.zip
 
-- name: 'ubuntu'
+- name: 'ubuntu:18.04'
   id: 'Verify Download'
   args: ['sha256sum', '/workspace/proxies.zip']
 
-- name: 'ubuntu'
+- name: 'ubuntu:18.04'
   id: 'Install dependencies'
   args:
-    - '/bin/sh'
+    - '/bin/bash'
     - '-c'
     - |
       apt-get update
       apt-get install -y unzip jq
 
-- name: 'ubuntu'
+- name: 'ubuntu:18.04'
   id: 'Unzip Proxy Bundle'
   args: ['unzip', '-o', '/workspace/proxies.zip', '-d', '/workspace']
 
-- name: 'ubuntu'
+- name: 'ubuntu:18.04'
   id: 'Read and parse proxies.json'
   entrypoint: 'jq'
   args: ['.', '/workspace/proxies.json']
