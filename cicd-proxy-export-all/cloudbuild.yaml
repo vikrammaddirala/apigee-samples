@@ -7,11 +7,11 @@ steps:
       - |
         # Set necessary variables here
         export PROJECT_ID=$(gcloud config get-value project)
-        export APIGEE_ORG=apigee-x-379708
-        export APIGEE_ENV=test-env
+        export ORG_NAME="apigee-x-379708"
+        export ENV_NAME="test-env"
         echo "PROJECT_ID: $PROJECT_ID"
-        echo "APIGEE_ORG: $APIGEE_ORG"
-        echo "APIGEE_ENV: $APIGEE_ENV"
+        echo "ORG_NAME: $ORG_NAME"
+        echo "ENV_NAME: $ENV_NAME"
 
   - name: 'gcr.io/cloud-builders/curl'
     id: List Proxies
@@ -19,8 +19,8 @@ steps:
     args:
       - -c
       - |
-        echo "Listing proxies in $APIGEE_ENV environment..."
-        PROXIES=$(curl -s -X GET "https://apigee.googleapis.com/v1/organizations/$APIGEE_ORG/environments/$APIGEE_ENV/apis" \
+        echo "Listing proxies in $ENV_NAME environment..."
+        PROXIES=$(curl -s -X GET "https://apigee.googleapis.com/v1/organizations/$ORG_NAME/environments/$ENV_NAME/apis" \
           -H "Authorization: Bearer $(gcloud auth print-access-token)")
 
         echo "Proxies fetched:"
@@ -59,7 +59,7 @@ steps:
         echo "Downloading proxy bundles..."
         while IFS= read -r proxy; do
           echo "Downloading proxy: $proxy"
-          curl -s -X GET "https://apigee.googleapis.com/v1/organizations/$APIGEE_ORG/apis/$proxy/revisions/latest?format=bundle" \
+          curl -s -X GET "https://apigee.googleapis.com/v1/organizations/$ORG_NAME/apis/$proxy/revisions/latest?format=bundle" \
             -H "Authorization: Bearer $(gcloud auth print-access-token)" \
             -o "${proxy}.zip"
         done < proxy_names.txt
@@ -70,10 +70,10 @@ steps:
     args:
       - -c
       - |
-        echo "Deploying proxies to $APIGEE_ENV environment..."
+        echo "Deploying proxies to $ENV_NAME environment..."
         while IFS= read -r proxy; do
           echo "Deploying proxy: $proxy"
-          curl -X POST "https://apigee.googleapis.com/v1/organizations/$APIGEE_ORG/environments/$APIGEE_ENV/apis/$proxy/revisions/latest/deployments" \
+          curl -X POST "https://apigee.googleapis.com/v1/organizations/$ORG_NAME/environments/$ENV_NAME/apis/$proxy/revisions/latest/deployments" \
             -H "Authorization: Bearer $(gcloud auth print-access-token)" \
             -H "Content-Type: application/json" \
             -d '{}'
