@@ -1,7 +1,17 @@
 steps:
-- name: 'ubuntu'
+- name: 'gcr.io/cloud-builders/docker'
   id: 'Download Proxy Bundle'
-  args: ['curl', '-o', '/workspace/proxies.zip', 'https://storage.googleapis.com/proxy-storage-01/proxies.zip']
+  args:
+    - 'run'
+    - '--rm'
+    - '-v'
+    - '/workspace:/workspace'
+    - 'alpine'
+    - '/bin/sh'
+    - '-c'
+    - |
+      apk add --no-cache curl
+      curl -o /workspace/proxies.zip https://storage.googleapis.com/proxy-storage-01/proxies.zip
 
 - name: 'ubuntu'
   id: 'Verify Download'
@@ -14,7 +24,7 @@ steps:
     - '-c'
     - |
       apt-get update
-      apt-get install -y unzip jq curl
+      apt-get install -y unzip jq
 
 - name: 'ubuntu'
   id: 'Unzip Proxy Bundle'
