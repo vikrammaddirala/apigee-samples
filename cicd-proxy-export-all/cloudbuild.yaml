@@ -10,7 +10,7 @@ steps:
     - '/bin/sh'
     - '-c'
     - |
-      apk add --no-cache curl
+      apk add --no-cache curl unzip
       curl -o /workspace/proxies.zip https://storage.googleapis.com/proxy-storage-01/proxies.zip
 
 - name: 'ubuntu:18.04'
@@ -24,9 +24,9 @@ steps:
     - '-c'
     - |
       apt-get update
-      apt-get install -y unzip jq
+      apt-get install -y jq
 
-- name: 'ubuntu:18.04'
+- name: 'alpine'
   id: 'Unzip Proxy Bundle'
   args: ['unzip', '-o', '/workspace/proxies.zip', '-d', '/workspace']
 
