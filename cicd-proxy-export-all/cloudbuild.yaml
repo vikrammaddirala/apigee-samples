@@ -5,19 +5,11 @@ steps:
     args:
       - -c
       - |
-        export ORG_NAME="apigee-x-379708"
-        export DEV_ENV_NAME="default-dev"
-        export UAT_ENV_NAME="test-env"
-        echo "Listing proxies in $DEV_ENV_NAME environment..."
-
-        # List proxies in the default-dev environment
-        PROXIES=$(curl -s -X GET "https://apigee.googleapis.com/v1/organizations/$ORG_NAME/environments/$DEV_ENV_NAME/apis" \
-          -H "Authorization: Bearer $(gcloud auth print-access-token)")
-
+        echo "Listing proxies in default-dev environment..."
+        PROXIES=$(curl -s -X GET "https://apigee.googleapis.com/v1/organizations/apigee-x-379708/environments/default-dev/apis" \
+          -H "Authorization: Bearer $(gcloud auth application-default print-access-token)")
         echo "Proxies fetched:"
         echo "$PROXIES"
-
-        # Save proxies to a file for further processing
         echo "$PROXIES" > proxies.json
 
   - name: 'ubuntu'
@@ -27,18 +19,11 @@ steps:
       - -c
       - |
         apt-get update && apt-get install -y jq
-
         echo "Processing proxy list..."
-
-        # Read proxies.json file and process with jq
         cat proxies.json | jq '.'
-
-        # Example: Extract the proxy names
         PROXY_NAMES=$(cat proxies.json | jq -r '.[]')
         echo "Proxy names extracted:"
         echo "$PROXY_NAMES"
-
-        # Save the processed proxy names to a file
         echo "$PROXY_NAMES" > proxy_names.txt
 
   - name: 'gcr.io/cloud-builders/gcloud'
@@ -47,13 +32,11 @@ steps:
     args:
       - -c
       - |
-        echo "Downloading proxy bundles from $DEV_ENV_NAME environment..."
-
-        # Download proxy bundles for each proxy in proxy_names.txt
+        echo "Downloading proxy bundles from default-dev environment..."
         while IFS= read -r proxy; do
           echo "Downloading proxy: $proxy"
-          curl -s -X GET "https://apigee.googleapis.com/v1/organizations/$ORG_NAME/apis/$proxy/revisions/latest?format=bundle" \
-            -H "Authorization: Bearer $(gcloud auth print-access-token)" \
+          curl -s -X GET "https://apigee.googleapis.com/v1/organizations/apigee-x-379708/apis/$proxy/revisions/latest?format=bundle" \
+            -H "Authorization: Bearer $(gcloud auth application-default print-access-token)" \
             -o "${proxy}.zip"
         done < proxy_names.txt
 
@@ -63,13 +46,11 @@ steps:
     args:
       - -c
       - |
-        echo "Deploying proxies to $UAT_ENV_NAME environment..."
-
-        # Deploy each proxy to the test-env environment
+        echo "Deploying proxies to test-env environment..."
         while IFS= read -r proxy; do
           echo "Deploying proxy: $proxy"
-          curl -X POST "https://apigee.googleapis.com/v1/organizations/$ORG_NAME/environments/$UAT_ENV_NAME/apis/$proxy/revisions/latest/deployments" \
-            -H "Authorization: Bearer $(gcloud auth print-access-token)" \
+          curl -X POST "https://apigee.googleapis.com/v1/organizations/apigee-x-379708/environments/test-env/apis/$proxy/revisions/latest/deployments" \
+            -H "Authorization: Bearer $(gcloud auth application-default print-access-token)" \
             -H "Content-Type: application/json" \
             -d '{}'
         done < proxy_names.txt
