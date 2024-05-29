@@ -6,7 +6,7 @@ steps:
       - -c
       - |
         echo "Downloading proxies from default-dev environment..."
-        gcloud apigee environments apis list --organization=apigee-x-379708 --environment=default-dev --format=json > /workspace/proxies.json
+        gcloud apigee apis list --environment=default-dev --format=json > /workspace/proxies.json
 
   - name: 'gcr.io/cloud-builders/gsutil'
     id: upload-proxies
@@ -15,10 +15,4 @@ steps:
       - -c
       - |
         echo "Uploading proxies to proxy-storage-01 bucket..."
-        gsutil cp /workspace/proxies.json gs://proxy-storage-01/
-
-artifacts:
-  objects:
-    location: 'gs://proxy-storage-01'
-    paths:
-      - '/workspace/proxies.json'
+        gsutil cp /workspace/proxies.json gs://proxy-storage-01/proxies.json
