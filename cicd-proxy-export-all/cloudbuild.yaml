@@ -14,12 +14,14 @@ steps:
         echo "ORG_NAME: $ORG_NAME"
         echo "DEV_ENV_NAME: $DEV_ENV_NAME"
         echo "UAT_ENV_NAME: $UAT_ENV_NAME"
-        echo "substitutions:"
-        echo "  _APIGEE_ORG: \"$ORG_NAME\""
-        echo "  _APIGEE_DEV_ENV: \"$DEV_ENV_NAME\""
-        echo "  _APIGEE_UAT_ENV: \"$UAT_ENV_NAME\""
 
-  - name: 'gcr.io/cloud-builders/curl'
+substitutions:
+  _APIGEE_ORG: "apigee-x-379708"
+  _APIGEE_DEV_ENV: "default-dev"
+  _APIGEE_UAT_ENV: "test-env"
+
+steps:
+  - name: 'gcr.io/cloud-builders/gcloud'
     id: List Proxies
     entrypoint: bash
     args:
@@ -87,7 +89,6 @@ steps:
 
 images:
   - gcr.io/cloud-builders/gcloud
-  - gcr.io/cloud-builders/curl
   - ubuntu:latest
 
 timeout: "3600s"
