@@ -8,7 +8,7 @@ steps:
         export build_token=\"$(gcloud auth application-default print-access-token)\"
         env | grep "^build_" > /workspace/build_vars
 
-  - name: 'gcr.io/cloud-builders/gsutil'
+  - name: 'gcr.io/cloud-builders/gcloud'
     id: "Download Proxies from default-dev"
     entrypoint: 'bash'
     args:
