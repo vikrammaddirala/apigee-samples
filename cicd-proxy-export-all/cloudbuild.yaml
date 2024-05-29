@@ -7,9 +7,10 @@ steps:
       - |
         echo "Listing proxies in default-dev environment..."
         apt-get update && apt-get install -y jq
-        curl -s -X GET "https://apigee.googleapis.com/v1/organizations/apigee-x-379708/environments/default-dev/apis" \
-          -H "Authorization: Bearer $(gcloud auth application-default print-access-token)" \
-          | jq -r '.[]' > proxies.txt
+        response=$(curl -s -X GET "https://apigee.googleapis.com/v1/organizations/apigee-x-379708/environments/default-dev/apis" \
+          -H "Authorization: Bearer $(gcloud auth application-default print-access-token)")
+        proxies=$(echo "$response" | jq -r '.[]')
+        echo "$proxies" > proxies.txt
 
   - name: 'gcr.io/cloud-builders/gsutil'
     id: Download Proxies
