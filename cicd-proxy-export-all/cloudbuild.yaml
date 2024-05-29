@@ -33,14 +33,7 @@ steps:
       - -c
       - |
         echo "Verifying downloaded proxies JSON..."
-        apt-get update && apt-get install -y jq
-        jq length /workspace/proxies.json
-
-  - name: 'ubuntu'
-    id: "View Proxies JSON"
-    entrypoint: 'cat'
-    args:
-      - /workspace/proxies.json
+        cat /workspace/proxies.json
 
   - name: 'gcr.io/cloud-builders/curl'
     id: "Deploy Proxies to test-env"
