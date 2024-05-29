@@ -22,9 +22,18 @@ steps:
       unzip -t /workspace/proxies.zip
   waitFor: ['Download Proxy Bundle']
 
-- name: 'alpine'
+- name: 'gcr.io/cloud-builders/docker'
   id: 'Unzip Proxy Bundle'
-  args: ['unzip', '-o', '/workspace/proxies.zip', '-d', '/workspace']
+  args:
+    - 'run'
+    - '--rm'
+    - '-v'
+    - '/workspace:/workspace'
+    - 'alpine'
+    - '/bin/sh'
+    - '-c'
+    - |
+      unzip -o /workspace/proxies.zip -d /workspace
   waitFor: ['Check Archive Integrity']
 
 - name: 'ubuntu:18.04'
