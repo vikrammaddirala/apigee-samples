@@ -6,27 +6,11 @@ steps:
       - -c
       - |
         echo "Listing proxies in default-dev environment..."
-        PROXIES=$(curl -s -X GET "https://apigee.googleapis.com/v1/organizations/apigee-x-379708/environments/default-dev/apis" \
-          -H "Authorization: Bearer $(gcloud auth application-default print-access-token)")
-        echo "Proxies fetched:"
-        echo "$PROXIES"
-        echo "$PROXIES" > proxies.json
+        curl -s -X GET "https://apigee.googleapis.com/v1/organizations/apigee-x-379708/environments/default-dev/apis" \
+          -H "Authorization: Bearer $(gcloud auth application-default print-access-token)" \
+          | jq -r '.[]' > proxies.txt
 
-  - name: 'ubuntu'
-    id: Install JQ and Process Proxies
-    entrypoint: bash
-    args:
-      - -c
-      - |
-        apt-get update && apt-get install -y jq
-        echo "Processing proxy list..."
-        cat proxies.json | jq '.'
-        PROXY_NAMES=$(cat proxies.json | jq -r '.[]')
-        echo "Proxy names extracted:"
-        echo "$PROXY_NAMES"
-        echo "$PROXY_NAMES" > proxy_names.txt
-
-  - name: 'gcr.io/cloud-builders/gcloud'
+  - name: 'gcr.io/cloud-builders/gsutil'
     id: Download Proxies
     entrypoint: bash
     args:
@@ -35,10 +19,8 @@ steps:
         echo "Downloading proxy bundles from default-dev environment..."
         while IFS= read -r proxy; do
           echo "Downloading proxy: $proxy"
-          curl -s -X GET "https://apigee.googleapis.com/v1/organizations/apigee-x-379708/apis/$proxy/revisions/latest?format=bundle" \
-            -H "Authorization: Bearer $(gcloud auth application-default print-access-token)" \
-            -o "${proxy}.zip"
-        done < proxy_names.txt
+          gsutil cp "gs://proxy-storage-01/$proxy.zip" "/workspace/$proxy.zip"
+        done < proxies.txt
 
   - name: 'gcr.io/cloud-builders/gcloud'
     id: Deploy Proxies to Test Environment
@@ -53,10 +35,10 @@ steps:
             -H "Authorization: Bearer $(gcloud auth application-default print-access-token)" \
             -H "Content-Type: application/json" \
             -d '{}'
-        done < proxy_names.txt
+        done < proxies.txt
 
 images:
   - gcr.io/cloud-builders/gcloud
-  - ubuntu:latest
+  - gcr.io/cloud-builders/gsutil
 
 timeout: "3600s"
