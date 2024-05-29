@@ -15,25 +15,28 @@ steps:
       - -c
       - |
         source /workspace/build_vars
-        echo "Listing proxies in source environment..."
-        curl -X GET "https://apigee.googleapis.com/v1/organizations/apigee-x-379708/environments/${_APIGEE_DEV_ENV}/apis" \
+        echo "Listing proxies in default-dev environment..."
+        curl -s -X GET "https://apigee.googleapis.com/v1/organizations/apigee-x-379708/environments/${_APIGEE_DEV_ENV}/apis" \
         -H "Authorization: Bearer ${build_token}" \
-        -H "Accept: application/json" \
         -o /workspace/proxies.json
-        echo "HTTP Status: $?"
-        cat /workspace/proxies.json
 
   - name: 'ubuntu'
-    id: "Install JQ and Process Proxies"
+    id: "Install JQ"
     entrypoint: 'bash'
     args:
       - -c
       - |
         apt-get update && apt-get install -y jq
+
+  - name: 'ubuntu'
+    id: "Process Proxies"
+    entrypoint: 'bash'
+    args:
+      - -c
+      - |
         source /workspace/build_vars
-        echo "Contents of proxies.json:"
-        cat /workspace/proxies.json
-        cat /workspace/proxies.json | jq -r '.proxies[]' > /workspace/proxy_list.txt
+        echo "Processing proxy list..."
+        cat /workspace/proxies.json | jq -r '.proxies[] | .name' > /workspace/proxy_list.txt
 
   - name: 'ubuntu'
     id: "Download and Deploy Proxies"
@@ -41,28 +44,18 @@ steps:
     args:
       - -c
       - |
-        apt-get update && apt-get install -y curl unzip
         source /workspace/build_vars
         while read -r proxy; do
-          echo "Processing proxy: $proxy"
-          mkdir -p /workspace/proxies/$proxy
-
-          # Download proxy bundle
-          curl -X GET "https://apigee.googleapis.com/v1/organizations/apigee-x-379708/apis/$proxy/revisions/latest?format=bundle" \
+          echo "Processing $proxy..."
+          gsutil cp gs://proxy-storage-01/${proxy}.zip /workspace/${proxy}.zip
+          file /workspace/${proxy}.zip
+          apk add --no-cache unzip
+          unzip -d /workspace/${proxy} /workspace/${proxy}.zip
+          echo "Deploying $proxy to Apigee test environment..."
+          curl -X POST "https://apigee.googleapis.com/v1/organizations/apigee-x-379708/apis?action=import&name=${proxy}" \
           -H "Authorization: Bearer ${build_token}" \
-          -o /workspace/proxies/$proxy/$proxy.zip
-
-          # Verify and unzip proxy bundle
-          file /workspace/proxies/$proxy/$proxy.zip
-          unzip -d /workspace/proxies/$proxy /workspace/proxies/$proxy/$proxy.zip
-
-          # Deploy proxy to target environment
-          echo "Deploying proxy: $proxy to target environment"
-          curl -X POST "https://apigee.googleapis.com/v1/organizations/apigee-x-379708/apis?action=import&name=$proxy" \
-          -H "Authorization: Bearer ${build_token}" \
-          -F "file=@/workspace/proxies/$proxy/$proxy.zip"
-
-          curl -X POST "https://apigee.googleapis.com/v1/organizations/apigee-x-379708/environments/${_APIGEE_UAT_ENV}/apis/$proxy/revisions/latest/deployments" \
+          -F "file=@/workspace/${proxy}.zip"
+          curl -X POST "https://apigee.googleapis.com/v1/organizations/apigee-x-379708/environments/${_APIGEE_UAT_ENV}/apis/${proxy}/revisions/1/deployments" \
           -H "Authorization: Bearer ${build_token}"
         done < /workspace/proxy_list.txt
 
