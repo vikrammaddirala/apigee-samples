@@ -33,15 +33,14 @@ steps:
     - '-c'
     - |
       for proxy in $(jq -r '.proxies | keys[]' /workspace/proxies.json); do
-        PROXY_NAME=$(jq -r ".proxies[$proxy].name" /workspace/proxies.json)
         PROXY_DIR=$(jq -r ".proxies[$proxy].directory" /workspace/proxies.json)
-        echo "Deploying ${PROXY_NAME} from ${PROXY_DIR}"
-        if gcloud alpha apigee apis describe ${PROXY_NAME} --organization='apigee-x-379708'; then
-          echo "API ${PROXY_NAME} already exists"
+        echo "Deploying ${proxy} from ${PROXY_DIR}"
+        if gcloud alpha apigee apis describe ${proxy} --organization='apigee-x-379708'; then
+          echo "API ${proxy} already exists"
         else
-          gcloud alpha apigee apis create ${PROXY_NAME} --organization='apigee-x-379708'
+          gcloud alpha apigee apis create ${proxy} --organization='apigee-x-379708'
         fi
-        gcloud alpha apigee apis deploy ${PROXY_NAME} --environment='test-env' --source=${PROXY_DIR}
+        gcloud alpha apigee apis deploy ${proxy} --environment='test-env' --source=${PROXY_DIR}
       done
   waitFor: ['Read and parse proxies.json']
 
