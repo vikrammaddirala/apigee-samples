@@ -1,33 +1,16 @@
 steps:
   - name: 'gcr.io/cloud-builders/gcloud'
-    id: variables
-    entrypoint: bash
-    args:
-      - -c
-      - |
-        # Set necessary variables here
-        export PROJECT_ID=$(gcloud config get-value project)
-        export ORG_NAME="apigee-x-379708"
-        export DEV_ENV_NAME="default-dev"
-        export UAT_ENV_NAME="test-env"
-        echo "PROJECT_ID: $PROJECT_ID"
-        echo "ORG_NAME: $ORG_NAME"
-        echo "DEV_ENV_NAME: $DEV_ENV_NAME"
-        echo "UAT_ENV_NAME: $UAT_ENV_NAME"
-
-substitutions:
-  _APIGEE_ORG: "apigee-x-379708"
-  _APIGEE_DEV_ENV: "default-dev"
-  _APIGEE_UAT_ENV: "test-env"
-
-steps:
-  - name: 'gcr.io/cloud-builders/gcloud'
     id: List Proxies
     entrypoint: bash
     args:
       - -c
       - |
+        export ORG_NAME="apigee-x-379708"
+        export DEV_ENV_NAME="default-dev"
+        export UAT_ENV_NAME="test-env"
         echo "Listing proxies in $DEV_ENV_NAME environment..."
+
+        # List proxies in the default-dev environment
         PROXIES=$(curl -s -X GET "https://apigee.googleapis.com/v1/organizations/$ORG_NAME/environments/$DEV_ENV_NAME/apis" \
           -H "Authorization: Bearer $(gcloud auth print-access-token)")
 
@@ -46,7 +29,7 @@ steps:
         apt-get update && apt-get install -y jq
 
         echo "Processing proxy list..."
-        
+
         # Read proxies.json file and process with jq
         cat proxies.json | jq '.'
 
@@ -65,6 +48,8 @@ steps:
       - -c
       - |
         echo "Downloading proxy bundles from $DEV_ENV_NAME environment..."
+
+        # Download proxy bundles for each proxy in proxy_names.txt
         while IFS= read -r proxy; do
           echo "Downloading proxy: $proxy"
           curl -s -X GET "https://apigee.googleapis.com/v1/organizations/$ORG_NAME/apis/$proxy/revisions/latest?format=bundle" \
@@ -79,6 +64,8 @@ steps:
       - -c
       - |
         echo "Deploying proxies to $UAT_ENV_NAME environment..."
+
+        # Deploy each proxy to the test-env environment
         while IFS= read -r proxy; do
           echo "Deploying proxy: $proxy"
           curl -X POST "https://apigee.googleapis.com/v1/organizations/$ORG_NAME/environments/$UAT_ENV_NAME/apis/$proxy/revisions/latest/deployments" \
