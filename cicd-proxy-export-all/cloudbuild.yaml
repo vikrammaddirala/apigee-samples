@@ -1,57 +1,87 @@
 steps:
   - name: 'gcr.io/cloud-builders/gcloud'
     id: variables
-    entrypoint: 'bash'
+    entrypoint: bash
     args:
       - -c
       - |
-        export build_token=\"$(gcloud auth application-default print-access-token)\"
-        env | grep "^build_" > /workspace/build_vars
+        # Set necessary variables here
+        export PROJECT_ID=$(gcloud config get-value project)
+        export APIGEE_ORG=apigee-x-379708
+        export APIGEE_ENV=test-env
+        echo "PROJECT_ID: $PROJECT_ID"
+        echo "APIGEE_ORG: $APIGEE_ORG"
+        echo "APIGEE_ENV: $APIGEE_ENV"
 
   - name: 'gcr.io/cloud-builders/curl'
-    id: "List Proxies"
-    entrypoint: 'bash'
+    id: List Proxies
+    entrypoint: bash
     args:
       - -c
       - |
-        source /workspace/build_vars
-        echo "Listing proxies in default-dev environment..."
-        curl -s -X GET "https://apigee.googleapis.com/v1/organizations/apigee-x-379708/environments/${_APIGEE_DEV_ENV}/apis" \
-        -H "Authorization: Bearer ${build_token}" \
-        -o /workspace/proxies.json
+        echo "Listing proxies in $APIGEE_ENV environment..."
+        PROXIES=$(curl -s -X GET "https://apigee.googleapis.com/v1/organizations/$APIGEE_ORG/environments/$APIGEE_ENV/apis" \
+          -H "Authorization: Bearer $(gcloud auth print-access-token)")
+
+        echo "Proxies fetched:"
+        echo "$PROXIES"
+
+        # Save proxies to a file for further processing
+        echo "$PROXIES" > proxies.json
 
   - name: 'ubuntu'
-    id: "Install JQ and Process Proxies"
-    entrypoint: 'bash'
+    id: Install JQ and Process Proxies
+    entrypoint: bash
     args:
       - -c
       - |
         apt-get update && apt-get install -y jq
-        source /workspace/build_vars
-        echo "Processing proxy list..."
-        jq -r '.proxies[]' /workspace/proxies.json > /workspace/proxy_list.txt
 
-  - name: 'ubuntu'
-    id: "Download and Deploy Proxies"
-    entrypoint: 'bash'
+        echo "Processing proxy list..."
+        
+        # Read proxies.json file and process with jq
+        cat proxies.json | jq '.'
+
+        # Example: Extract the proxy names
+        PROXY_NAMES=$(cat proxies.json | jq -r '.[]')
+        echo "Proxy names extracted:"
+        echo "$PROXY_NAMES"
+
+        # Save the processed proxy names to a file
+        echo "$PROXY_NAMES" > proxy_names.txt
+
+  - name: 'gcr.io/cloud-builders/gcloud'
+    id: Download Proxies
+    entrypoint: bash
     args:
       - -c
       - |
-        apt-get update && apt-get install -y curl unzip
-        source /workspace/build_vars
-        while read -r proxy; do
-          echo "Processing $proxy..."
-          gsutil cp gs://proxy-storage-01/${proxy}.zip /workspace/${proxy}.zip
-          file /workspace/${proxy}.zip
-          unzip -d /workspace/${proxy} /workspace/${proxy}.zip
-          echo "Deploying $proxy to Apigee test environment..."
-          curl -X POST "https://apigee.googleapis.com/v1/organizations/apigee-x-379708/apis?action=import&name=${proxy}" \
-          -H "Authorization: Bearer ${build_token}" \
-          -F "file=@/workspace/${proxy}.zip"
-          curl -X POST "https://apigee.googleapis.com/v1/organizations/apigee-x-379708/environments/${_APIGEE_UAT_ENV}/apis/${proxy}/revisions/1/deployments" \
-          -H "Authorization: Bearer ${build_token}"
-        done < /workspace/proxy_list.txt
+        echo "Downloading proxy bundles..."
+        while IFS= read -r proxy; do
+          echo "Downloading proxy: $proxy"
+          curl -s -X GET "https://apigee.googleapis.com/v1/organizations/$APIGEE_ORG/apis/$proxy/revisions/latest?format=bundle" \
+            -H "Authorization: Bearer $(gcloud auth print-access-token)" \
+            -o "${proxy}.zip"
+        done < proxy_names.txt
 
-substitutions:
-  _APIGEE_DEV_ENV: "default-dev"
-  _APIGEE_UAT_ENV: "test-env"
+  - name: 'gcr.io/cloud-builders/gcloud'
+    id: Deploy Proxies to Test Environment
+    entrypoint: bash
+    args:
+      - -c
+      - |
+        echo "Deploying proxies to $APIGEE_ENV environment..."
+        while IFS= read -r proxy; do
+          echo "Deploying proxy: $proxy"
+          curl -X POST "https://apigee.googleapis.com/v1/organizations/$APIGEE_ORG/environments/$APIGEE_ENV/apis/$proxy/revisions/latest/deployments" \
+            -H "Authorization: Bearer $(gcloud auth print-access-token)" \
+            -H "Content-Type: application/json" \
+            -d '{}'
+        done < proxy_names.txt
+
+images:
+  - gcr.io/cloud-builders/gcloud
+  - gcr.io/cloud-builders/curl
+  - ubuntu:latest
+
+timeout: "3600s"
