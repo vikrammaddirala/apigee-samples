@@ -1,47 +1,55 @@
 steps:
   - name: 'gcr.io/cloud-builders/gcloud'
-    id: List Proxies
-    entrypoint: bash
+    id: variables
+    entrypoint: 'bash'
     args:
       - -c
       - |
-        echo "Listing proxies in default-dev environment..."
-        apt-get update && apt-get install -y jq
-        response=$(curl -s -X GET "https://apigee.googleapis.com/v1/organizations/apigee-x-379708/environments/default-dev/apis" \
-          -H "Authorization: Bearer $(gcloud auth application-default print-access-token)")
-        proxies=$(echo "$response" | jq -r '.[].name')
-        echo "$proxies" > proxies.txt
+        export build_token="$(gcloud auth application-default print-access-token)"
+        env | grep "^build_" > /workspace/build_vars
 
   - name: 'gcr.io/cloud-builders/gsutil'
-    id: Download Proxies
-    entrypoint: bash
+    id: "Download Proxy Bundle"
+    entrypoint: 'bash'
     args:
       - -c
       - |
-        echo "Downloading proxy bundles from default-dev environment..."
-        while IFS= read -r proxy; do
-          if [ ! -z "$proxy" ]; then
-            echo "Downloading proxy: $proxy"
-            gsutil cp "gs://proxy-storage-01/$proxy.zip" "/workspace/$proxy.zip"
-          fi
-        done < proxies.txt
+        echo "Downloading proxy bundle from GCS..."
+        gsutil cp gs://proxy-storage-01/helloworld-1.zip /workspace/proxy.zip
 
-  - name: 'gcr.io/cloud-builders/gcloud'
-    id: Deploy Proxies
-    entrypoint: bash
+  - name: 'ubuntu'
+    id: "Verify Proxy Bundle"
+    entrypoint: 'bash'
     args:
       - -c
       - |
-        echo "Deploying proxies to test-env..."
-        while IFS= read -r proxy; do
-          if [ ! -z "$proxy" ]; then
-            echo "Deploying proxy: $proxy"
-            gcloud apigee proxies deploy --organization=apigee-x-379708 --environment=test-env --api="$proxy" --basepath="/" --bundle="/workspace/$proxy.zip"
-          fi
-        done < proxies.txt
+        echo "Verifying downloaded proxy bundle..."
+        apt-get update && apt-get install -y file
+        file /workspace/proxy.zip
 
-images:
-  - gcr.io/cloud-builders/gcloud
-  - gcr.io/cloud-builders/gsutil
+  - name: 'alpine'
+    id: "Unzip Proxy Bundle"
+    entrypoint: 'sh'
+    args:
+      - -c
+      - |
+        apk add --no-cache unzip
+        unzip -d /workspace/proxy /workspace/proxy.zip
 
-timeout: "3600s"
+  - name: 'gcr.io/cloud-builders/curl'
+    id: "Deploy Proxy Bundle"
+    entrypoint: 'bash'
+    args:
+      - -c
+      - |
+        source /workspace/build_vars
+        echo "Deploying proxy to Apigee test environment..."
+        curl -X POST "https://apigee.googleapis.com/v1/organizations/apigee-x-379708/apis?action=import&name=helloworld" \
+        -H "Authorization: Bearer ${build_token}" \
+        -F "file=@/workspace/proxy.zip"
+        curl -X POST "https://apigee.googleapis.com/v1/organizations/apigee-x-379708/environments/${_APIGEE_UAT_ENV}/apis/helloworld/revisions/1/deployments" \
+        -H "Authorization: Bearer ${build_token}"
+
+substitutions:
+  _APIGEE_DEV_ENV: "default-dev"
+  _APIGEE_UAT_ENV: "test-env"
