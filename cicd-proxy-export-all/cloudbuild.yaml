@@ -22,19 +22,12 @@ steps:
         -o /workspace/proxies.json
 
   - name: 'ubuntu'
-    id: "Install JQ"
+    id: "Install JQ and Process Proxies"
     entrypoint: 'bash'
     args:
       - -c
       - |
         apt-get update && apt-get install -y jq
-
-  - name: 'ubuntu'
-    id: "Process Proxies"
-    entrypoint: 'bash'
-    args:
-      - -c
-      - |
         source /workspace/build_vars
         cat /workspace/proxies.json | jq -r '.proxies[]' > /workspace/proxy_list.txt
 
@@ -44,6 +37,7 @@ steps:
     args:
       - -c
       - |
+        apt-get update && apt-get install -y curl unzip
         source /workspace/build_vars
         while read -r proxy; do
           echo "Processing proxy: $proxy"
@@ -55,7 +49,6 @@ steps:
           -o /workspace/proxies/$proxy/$proxy.zip
 
           # Verify and unzip proxy bundle
-          apt-get update && apt-get install -y file unzip
           file /workspace/proxies/$proxy/$proxy.zip
           unzip -d /workspace/proxies/$proxy /workspace/proxies/$proxy/$proxy.zip
 
