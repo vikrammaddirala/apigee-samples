@@ -9,7 +9,7 @@ steps:
         apt-get update && apt-get install -y jq
         response=$(curl -s -X GET "https://apigee.googleapis.com/v1/organizations/apigee-x-379708/environments/default-dev/apis" \
           -H "Authorization: Bearer $(gcloud auth application-default print-access-token)")
-        proxies=$(echo "$response" | jq -r '.[]')
+        proxies=$(echo "$response" | jq -r '.[].name')
         echo "$proxies" > proxies.txt
 
   - name: 'gcr.io/cloud-builders/gsutil'
@@ -20,23 +20,24 @@ steps:
       - |
         echo "Downloading proxy bundles from default-dev environment..."
         while IFS= read -r proxy; do
-          echo "Downloading proxy: $proxy"
-          gsutil cp "gs://proxy-storage-01/$proxy.zip" "/workspace/$proxy.zip"
+          if [ ! -z "$proxy" ]; then
+            echo "Downloading proxy: $proxy"
+            gsutil cp "gs://proxy-storage-01/$proxy.zip" "/workspace/$proxy.zip"
+          fi
         done < proxies.txt
 
   - name: 'gcr.io/cloud-builders/gcloud'
-    id: Deploy Proxies to Test Environment
+    id: Deploy Proxies
     entrypoint: bash
     args:
       - -c
       - |
-        echo "Deploying proxies to test-env environment..."
+        echo "Deploying proxies to test-env..."
         while IFS= read -r proxy; do
-          echo "Deploying proxy: $proxy"
-          curl -X POST "https://apigee.googleapis.com/v1/organizations/apigee-x-379708/environments/test-env/apis/$proxy/revisions/latest/deployments" \
-            -H "Authorization: Bearer $(gcloud auth application-default print-access-token)" \
-            -H "Content-Type: application/json" \
-            -d '{}'
+          if [ ! -z "$proxy" ]; then
+            echo "Deploying proxy: $proxy"
+            gcloud apigee proxies deploy --organization=apigee-x-379708 --environment=test-env --api="$proxy" --basepath="/" --bundle="/workspace/$proxy.zip"
+          fi
         done < proxies.txt
 
 images:
