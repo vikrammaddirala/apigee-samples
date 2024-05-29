@@ -1,45 +1,59 @@
 steps:
-  - name: 'gcr.io/cloud-builders/gcloud'
-    id: variables
-    entrypoint: 'bash'
-    args:
-      - -c
-      - |
-        export build_token="$(gcloud auth application-default print-access-token)"
-        env | grep "^build_" > /workspace/build_vars
+- name: 'ubuntu'
+  id: 'Download Proxy Bundle'
+  args: ['curl', '-o', '/workspace/proxies.zip', 'https://storage.googleapis.com/proxy-storage-01/proxies.zip']
 
-  - name: 'gcr.io/cloud-builders/gcloud'
-    id: "List Proxies"
-    entrypoint: 'bash'
-    args:
-      - -c
-      - |
-        echo "Listing proxies in ${_APIGEE_DEV_ENV} environment..."
-        gcloud config set project $PROJECT_ID
-        gcloud apigee apis list --organization=apigee-x-379708 --format=json > /workspace/proxies.json
+- name: 'ubuntu'
+  id: 'Verify Download'
+  args: ['sha256sum', '/workspace/proxies.zip']
 
-  - name: 'ubuntu'
-    id: "Download and Deploy Proxies"
-    entrypoint: 'bash'
-    args:
-      - -c
-      - |
-        echo "Downloading and deploying proxies..."
-        apt-get update && apt-get install -y jq curl unzip
-        source /workspace/build_vars
-        for proxy in $(jq -r '.[].name' /workspace/proxies.json); do
-          echo "Processing proxy: $proxy"
-          revision=$(gcloud apigee apis describe $proxy --organization=apigee-x-379708 --format="value(latestRevision.id)")
-          echo "Downloading proxy $proxy revision $revision"
-          gcloud apigee apis export --organization=apigee-x-379708 --api=$proxy --revision=$revision --output=/workspace/$proxy.zip
-          echo "Deploying proxy $proxy to ${_APIGEE_UAT_ENV} environment..."
-          curl -X POST "https://apigee.googleapis.com/v1/organizations/apigee-x-379708/apis?action=import&name=$proxy" \
-          -H "Authorization: Bearer ${build_token}" \
-          -F "file=@/workspace/$proxy.zip"
-          curl -X POST "https://apigee.googleapis.com/v1/organizations/apigee-x-379708/environments/${_APIGEE_UAT_ENV}/apis/$proxy/revisions/$revision/deployments" \
-          -H "Authorization: Bearer ${build_token}"
-        done
+- name: 'ubuntu'
+  id: 'Install dependencies'
+  args:
+    - '/bin/sh'
+    - '-c'
+    - |
+      apt-get update
+      apt-get install -y unzip jq curl
 
-substitutions:
-  _APIGEE_DEV_ENV: "default-dev"
-  _APIGEE_UAT_ENV: "test-env"
+- name: 'ubuntu'
+  id: 'Unzip Proxy Bundle'
+  args: ['unzip', '-o', '/workspace/proxies.zip', '-d', '/workspace']
+
+- name: 'ubuntu'
+  id: 'Read and parse proxies.json'
+  entrypoint: 'jq'
+  args: ['.', '/workspace/proxies.json']
+  waitFor: ['Install dependencies', 'Unzip Proxy Bundle']
+
+- name: 'gcr.io/google.com/cloudsdktool/cloud-sdk:latest'
+  id: 'Deploy Proxies'
+  entrypoint: 'sh'
+  args:
+    - '-c'
+    - |
+      NUM_PROXIES=$(jq '.proxies | length' /workspace/proxies.json)
+      for i in $(seq 0 $(($NUM_PROXIES - 1))); do
+        PROXY_NAME=$(jq -r ".proxies[$i].name" /workspace/proxies.json)
+        PROXY_DIR=$(jq -r ".proxies[$i].directory" /workspace/proxies.json)
+        echo "Deploying ${PROXY_NAME} from ${PROXY_DIR}"
+        if gcloud alpha apigee apis describe ${PROXY_NAME} --organization='apigee-x-379708'; then
+          echo "API ${PROXY_NAME} already exists"
+        else
+          gcloud alpha apigee apis create ${PROXY_NAME} --organization='apigee-x-379708'
+        fi
+        gcloud alpha apigee apis deploy ${PROXY_NAME} --environment='test-env' --source=${PROXY_DIR}
+      done
+  waitFor: ['Read and parse proxies.json']
+
+- name: 'gcr.io/google.com/cloudsdktool/cloud-sdk:latest'
+  id: 'Clean up'
+  entrypoint: 'sh'
+  args:
+    - '-c'
+    - |
+      rm -rf /workspace/proxies.zip
+      find /workspace -mindepth 1 -maxdepth 1 -type d -exec rm -rf {} +
+  waitFor: ['Deploy Proxies']
+
+timeout: 1200s
