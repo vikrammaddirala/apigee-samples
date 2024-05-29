@@ -29,6 +29,8 @@ steps:
       - |
         apt-get update && apt-get install -y jq
         source /workspace/build_vars
+        echo "Contents of proxies.json:"
+        cat /workspace/proxies.json
         cat /workspace/proxies.json | jq -r '.proxies[]' > /workspace/proxy_list.txt
 
   - name: 'ubuntu'
