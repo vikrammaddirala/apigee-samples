@@ -20,6 +20,8 @@ steps:
         -H "Authorization: Bearer ${build_token}" \
         -H "Accept: application/json" \
         -o /workspace/proxies.json
+        echo "HTTP Status: $?"
+        cat /workspace/proxies.json
 
   - name: 'ubuntu'
     id: "Install JQ and Process Proxies"
