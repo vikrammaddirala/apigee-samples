@@ -1,57 +1,37 @@
 steps:
-  # Define the environment variables
   - name: 'gcr.io/cloud-builders/gcloud'
-    id: 'variables'
+    id: variables
     entrypoint: 'bash'
     args:
-      - '-c'
+      - -c
       - |
-        export ORGANIZATION_ID="apigee-x-379708"
-        export ENV_SRC="default-dev"
-        export ENV_DEST="test-env"
-        export KVM_NAME="SampleKVM"
-        export ACCESS_TOKEN=$(gcloud auth print-access-token)
+        export build_token="$(gcloud auth application-default print-access-token)"
+        env | grep "^build_" > /workspace/build_vars
 
-  # Check if the KVM exists in the source environment
   - name: 'gcr.io/cloud-builders/curl'
-    id: 'check_kvm_exists'
+    id: export_kvm
+    waitFor: ['variables']
     entrypoint: 'bash'
     args:
-      - '-c'
+      - -c
       - |
-        KVM_CHECK_RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" -H "Authorization: Bearer ${ACCESS_TOKEN}" "https://apigee.googleapis.com/v1/organizations/${ORGANIZATION_ID}/environments/${ENV_SRC}/keyvaluemaps/${KVM_NAME}")
-        if [ "$KVM_CHECK_RESPONSE" -ne 200 ]; then
-          echo "KVM ${KVM_NAME} not found in ${ENV_SRC} environment. Aborting."
-          exit 1
-        fi
+        source /workspace/build_vars
+        echo "Exporting KVM from default-dev environment..."
+        curl -H "Authorization: Bearer $build_token" \
+             -X GET "https://apigee.googleapis.com/v1/organizations/apigee-x-379708/environments/default-dev/keyvaluemaps/SampleKVM" \
+             -o /workspace/kvm.json
+        cat /workspace/kvm.json
 
-  # Export the KVM from the source environment
   - name: 'gcr.io/cloud-builders/curl'
-    id: 'export_kvm'
+    id: import_kvm
+    waitFor: ['export_kvm']
     entrypoint: 'bash'
     args:
-      - '-c'
+      - -c
       - |
-        echo "Exporting KVM from ${ENV_SRC} environment..."
-        curl -s -H "Authorization: Bearer ${ACCESS_TOKEN}" "https://apigee.googleapis.com/v1/organizations/${ORGANIZATION_ID}/environments/${ENV_SRC}/keyvaluemaps/${KVM_NAME}" -o kvm_export.json
-        if [ ! -s kvm_export.json ]; then
-          echo "Error: KVM export failed. Aborting."
-          exit 1
-        fi
-
-  # Import the KVM to the destination environment
-  - name: 'gcr.io/cloud-builders/curl'
-    id: 'import_kvm'
-    entrypoint: 'bash'
-    args:
-      - '-c'
-      - |
-        echo "Importing KVM to ${ENV_DEST} environment..."
-        curl -s -X POST -H "Authorization: Bearer ${ACCESS_TOKEN}" -H "Content-Type: application/json" "https://apigee.googleapis.com/v1/organizations/${ORGANIZATION_ID}/environments/${ENV_DEST}/keyvaluemaps" -d @kvm_export.json -o import_response.json
-        if grep -q '"error"' import_response.json; then
-          echo "Error: KVM import failed."
-          cat import_response.json
-          exit 1
-        fi
-
-timeout: 1200s
+        source /workspace/build_vars
+        echo "Importing KVM to test-env environment..."
+        curl -H "Authorization: Bearer $build_token" \
+             -H "Content-Type: application/json" \
+             -X POST "https://apigee.googleapis.com/v1/organizations/apigee-x-379708/environments/test-env/keyvaluemaps" \
+             -d @/workspace/kvm.json
