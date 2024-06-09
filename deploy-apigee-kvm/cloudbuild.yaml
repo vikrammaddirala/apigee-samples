@@ -6,7 +6,7 @@ steps:
     args:
       - -c
       - |
-        export build_token="$(gcloud auth application-default print-access-token)"
+        export build_token="ya29.a0AXooCgsQJG-8iK9U3O_F84DApABV8ht_ed6ljWSfQXkSfe_g5bIrThZYv4zYb5X52L5dqM0UlELMapLfpnfepdNct2ut167ha-JzfH9CaMnz_Qcoihz4H0HEeNqXMrQI4JE0KTfVe54ZmpMkWqZRCk1z9_uBPeL23bNhce9VPnA2IxkT6WWsIpUbZhRY1oabInFesF81hIcaWGZKizwL9hDm-i5BH7-p60bEmoYEWCZe086uLUAZmdi4nVOa9Ip5RhM5K6CwF4FIcdbuCOztw9GksoBsLc6xkzS9EbHU38vUFNJ1YY2icIZjhod7tMs95kbldaLT_YwrLd9-FksYw9R8nVif8OJC7h37SPz5mV64azQuKjta52I-dVVYi93vk6Bk1ehLrElLJKVbVin1exnBJWH0aCgYKAaASARMSFQHGX2MiMJJSofVyvvdy_x4l40_CHQ0419"
         env | grep "^build_token=" > /workspace/build_vars
 
   # Step 1: Export KVM from default-dev environment
@@ -16,7 +16,7 @@ steps:
       - 'GET'
       - 'https://apigee.googleapis.com/v1/organizations/apigee-x-379708/environments/default-dev/keyvaluemaps/SampleKVM'
       - '-H'
-      - 'Authorization: Bearer $build_token'
+      - 'Authorization: Bearer ya29.a0AXooCgsQJG-8iK9U3O_F84DApABV8ht_ed6ljWSfQXkSfe_g5bIrThZYv4zYb5X52L5dqM0UlELMapLfpnfepdNct2ut167ha-JzfH9CaMnz_Qcoihz4H0HEeNqXMrQI4JE0KTfVe54ZmpMkWqZRCk1z9_uBPeL23bNhce9VPnA2IxkT6WWsIpUbZhRY1oabInFesF81hIcaWGZKizwL9hDm-i5BH7-p60bEmoYEWCZe086uLUAZmdi4nVOa9Ip5RhM5K6CwF4FIcdbuCOztw9GksoBsLc6xkzS9EbHU38vUFNJ1YY2icIZjhod7tMs95kbldaLT_YwrLd9-FksYw9R8nVif8OJC7h37SPz5mV64azQuKjta52I-dVVYi93vk6Bk1ehLrElLJKVbVin1exnBJWH0aCgYKAaASARMSFQHGX2MiMJJSofVyvvdy_x4l40_CHQ0419'
     id: 'export-kvm'
 
   # Step 2: Import KVM to test-env environment
@@ -26,7 +26,7 @@ steps:
       - 'POST'
       - 'https://apigee.googleapis.com/v1/organizations/apigee-x-379708/environments/test-env/keyvaluemaps'
       - '-H'
-      - 'Authorization: Bearer $build_token'
+      - 'Authorization: Bearer ya29.a0AXooCgsQJG-8iK9U3O_F84DApABV8ht_ed6ljWSfQXkSfe_g5bIrThZYv4zYb5X52L5dqM0UlELMapLfpnfepdNct2ut167ha-JzfH9CaMnz_Qcoihz4H0HEeNqXMrQI4JE0KTfVe54ZmpMkWqZRCk1z9_uBPeL23bNhce9VPnA2IxkT6WWsIpUbZhRY1oabInFesF81hIcaWGZKizwL9hDm-i5BH7-p60bEmoYEWCZe086uLUAZmdi4nVOa9Ip5RhM5K6CwF4FIcdbuCOztw9GksoBsLc6xkzS9EbHU38vUFNJ1YY2icIZjhod7tMs95kbldaLT_YwrLd9-FksYw9R8nVif8OJC7h37SPz5mV64azQuKjta52I-dVVYi93vk6Bk1ehLrElLJKVbVin1exnBJWH0aCgYKAaASARMSFQHGX2MiMJJSofVyvvdy_x4l40_CHQ0419'
       - '-H'
       - 'Content-Type: application/json'
       - '--data-binary'
@@ -43,6 +43,4 @@ steps:
               "name": "key2",
               "value": "value2"
             }
-            // Add more key-value pairs if needed
-          ]
-        }
+       
