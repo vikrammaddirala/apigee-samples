@@ -20,7 +20,8 @@ steps:
              -H "Content-Type: application/json" \
              "https://apigee.googleapis.com/v1/organizations/apigee-x-379708/environments/default-dev/keyvaluemaps/SampleKVM" \
              -o kvm_export.json
-        cat kvm_export.json  # Add this line to print the content of the exported KVM file
+        echo "Exported KVM content:"
+        cat kvm_export.json
 
   - name: 'gcr.io/cloud-builders/curl'
     id: import_kvm
@@ -30,7 +31,10 @@ steps:
       - |
         echo "Importing KVM to test-env environment..."
         source /workspace/build_vars
-        cat kvm_export.json  # Add this line to print the content before importing
+        if grep -q "<!DOCTYPE html>" kvm_export.json; then
+          echo "Error: Exported KVM content is not valid JSON. Aborting import."
+          exit 1
+        fi
         curl -X POST -H "Authorization: Bearer $build_token" \
              -H "Content-Type: application/json" \
              -d @kvm_export.json \
