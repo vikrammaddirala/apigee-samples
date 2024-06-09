@@ -5,8 +5,8 @@ steps:
     args:
       - -c
       - |
-        export BUILD_TOKEN="$(gcloud auth application-default print-access-token)"
-        echo "build_token=$BUILD_TOKEN" > /workspace/build_vars
+        export build_token="$(gcloud auth application-default print-access-token)"
+        echo "build_token=$build_token" > /workspace/build_vars
 
   - name: 'gcr.io/cloud-builders/curl'
     entrypoint: 'bash'
