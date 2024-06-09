@@ -24,15 +24,14 @@ steps:
         cat /workspace/kvm.json  # Debug output: Print the content of kvm.json
 
   - name: 'gcr.io/cloud-builders/curl'
-    id: import-kvm
-    entrypoint: 'bash'
-    args:
-      - -c
-      - |
-        source /workspace/build_vars
-        import_kvm_url="https://apigee.googleapis.com/v1/organizations/apigee-x-379708/environments/test-env/keyvaluemaps"
-        cat /workspace/kvm.json  # Debug output: Print the content of kvm.json before sending
-        curl -X POST -H "Authorization: Bearer $build_token" \
-             -H "Content-Type: application/json" \
-             -d @/workspace/kvm.json \
-             "$import_kvm_url"
+  id: import-kvm
+  entrypoint: 'bash'
+  args:
+    - -c
+    - |
+      source /workspace/build_vars
+      import_kvm_url="https://apigee.googleapis.com/v1/organizations/apigee-x-379708/environments/test-env/keyvaluemaps"
+      curl -X POST -H "Authorization: Bearer $build_token" \
+           -H "Content-Type: application/json" \
+           -d '{"name": "COMPANY", "value": "example.com"}' \
+           "$import_kvm_url"
