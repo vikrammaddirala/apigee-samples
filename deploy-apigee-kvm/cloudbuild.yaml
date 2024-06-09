@@ -33,7 +33,3 @@ steps:
              -H "Content-Type: application/json" \
              -d @kvm_export.json \
              "https://apigee.googleapis.com/v1/organizations/apigee-x-379708/environments/test-env/keyvaluemaps"
-
-options:
-  logging: CLOUD_LOGGING_ONLY
-timeout: "600s"
