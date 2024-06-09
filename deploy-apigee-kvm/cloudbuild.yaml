@@ -1,24 +1,37 @@
 steps:
-  # Step to generate access token
+  # Step 0: Generate Access Token
   - name: 'gcr.io/cloud-builders/gcloud'
     id: variables
     entrypoint: 'bash'
     args:
-      - '-c'
+      - -c
       - |
-        export _TOKEN="$(gcloud auth application-default print-access-token)"
-        echo "Token: $_TOKEN"
+        export build_token="$(gcloud auth application-default print-access-token)"
+        env | grep "^build_token=" > /workspace/build_vars
 
-  # Step to import the KVM into the test-env environment
+  # Step 1: Export KVM from default-dev environment
   - name: 'gcr.io/cloud-builders/curl'
-    entrypoint: 'bash'
     args:
-      - '-c'
+      - '-X'
+      - 'GET'
+      - 'https://apigee.googleapis.com/v1/organizations/apigee-x-379708/environments/default-dev/keyvaluemaps/SampleKVM'
+      - '-H'
+      - 'Authorization: Bearer $build_token'
+    id: 'export-kvm'
+
+  # Step 2: Import KVM to test-env environment
+  - name: 'gcr.io/cloud-builders/curl'
+    args:
+      - '-X'
+      - 'POST'
+      - 'https://apigee.googleapis.com/v1/organizations/apigee-x-379708/environments/test-env/keyvaluemaps'
+      - '-H'
+      - 'Authorization: Bearer $build_token'
+      - '-H'
+      - 'Content-Type: application/json'
+      - '--data-binary'
       - |
-        curl -X POST \
-        -H "Authorization: Bearer $_TOKEN" \
-        -H "Content-Type: application/json" \
-        -d '{
+        {
           "name": "SampleKVM",
           "encrypted": false,
           "entry": [
@@ -30,6 +43,6 @@ steps:
               "name": "key2",
               "value": "value2"
             }
+            // Add more key-value pairs if needed
           ]
-        }' \
-        "https://apigee.googleapis.com/v1/organizations/apigee-x-379708/environments/test-env/keyvaluemaps"
+        }
