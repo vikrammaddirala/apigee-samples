@@ -1,0 +1,35 @@
+steps:
+  - name: 'gcr.io/cloud-builders/gcloud'
+    id: variables
+    entrypoint: 'bash'
+    args:
+      - -c
+      - |
+        export build_token="$(gcloud auth application-default print-access-token)"
+        env | grep "^build_" > /workspace/build_vars
+
+  - name: 'gcr.io/cloud-builders/curl'
+    id: export-kvm
+    entrypoint: 'bash'
+    args:
+      - -c
+      - |
+        source /workspace/build_vars
+        curl -H "Authorization: Bearer $build_token" \
+             -H "Content-Type: application/json" \
+             "https://apigee.googleapis.com/v1/organizations/YOUR_ORGANIZATION/environments/dev/keyvaluemaps/SampleKVM" \
+             -o /workspace/kvm.json
+
+  - name: 'gcr.io/cloud-builders/curl'
+    id: import-kvm
+    entrypoint: 'bash'
+    args:
+      - -c
+      - |
+        source /workspace/build_vars
+        curl -X POST -H "Authorization: Bearer $build_token" \
+             -H "Content-Type: application/json" \
+             -d @/workspace/kvm.json \
+             "https://apigee.googleapis.com/v1/organizations/apigee-x-379708/environments/dev-int/keyvaluemaps"
+
+timeout: '600s'
