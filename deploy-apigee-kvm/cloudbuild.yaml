@@ -17,7 +17,7 @@ steps:
         source /workspace/build_vars
         curl -v -H "Authorization: Bearer $build_token" \
              -H "Content-Type: application/json" \
-             "https://apigee.googleapis.com/v1/organizations/apigee-x-379708/environments/default-dev/keyvaluemaps/SampleKVM" \
+             "https://apigee.googleapis.com/v1/organizations/apigee-x-379708/environments/default-dev/keyvaluemaps/samplekvm-2" \
              -o /workspace/kvm.json
 
   - name: 'gcr.io/cloud-builders/curl'
@@ -31,3 +31,5 @@ steps:
              -H "Content-Type: application/json" \
              -d @/workspace/kvm.json \
              "https://apigee.googleapis.com/v1/organizations/apigee-x-379708/environments/test-env/keyvaluemaps"
+
+timeout: '600s'
