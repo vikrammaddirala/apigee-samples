@@ -7,7 +7,7 @@ steps:
       - -c
       - |
         export build_token="$(gcloud auth application-default print-access-token)"
-        env | grep "^build_token=" > /workspace/build_vars
+        echo "build_token=$build_token" > /workspace/build_vars
 
   # Step 1: Export KVM from default-dev environment
   - name: 'gcr.io/cloud-builders/curl'
@@ -16,7 +16,7 @@ steps:
       - 'GET'
       - 'https://apigee.googleapis.com/v1/organizations/apigee-x-379708/environments/default-dev/keyvaluemaps/SampleKVM'
       - '-H'
-      - 'Authorization: Bearer $build_token'
+      - 'Authorization: Bearer $(cat /workspace/build_vars | grep build_token | cut -d'=' -f2)'
     id: 'export-kvm'
 
   # Step 2: Import KVM to test-env environment
@@ -26,7 +26,7 @@ steps:
       - 'POST'
       - 'https://apigee.googleapis.com/v1/organizations/apigee-x-379708/environments/test-env/keyvaluemaps'
       - '-H'
-      - 'Authorization: Bearer $build_token'
+      - 'Authorization: Bearer $(cat /workspace/build_vars | grep build_token | cut -d'=' -f2)'
       - '-H'
       - 'Content-Type: application/json'
       - '--data-binary'
