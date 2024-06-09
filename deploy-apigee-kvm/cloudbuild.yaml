@@ -23,6 +23,11 @@ steps:
     args:
       - -c
       - |
-        curl -X POST -H "Authorization: Bearer $build_token" \
+        response=$(curl -X POST -H "Authorization: Bearer $build_token" \
           -H "Content-Type: application/json" -d @/workspace/exported_kvm.json \
-          https://api.enterprise.apigee.com/v1/organizations/apigee-x-379708/environments/test-env/keyvaluemaps
+          https://api.enterprise.apigee.com/v1/organizations/apigee-x-379708/environments/test-env/keyvaluemaps 2>&1)
+        echo "Response: $response"
+        if [[ $response == *"error"* ]]; then
+          echo "Error creating KVM in test environment"
+          exit 1
+        fi
