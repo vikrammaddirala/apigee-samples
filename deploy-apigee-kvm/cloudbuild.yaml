@@ -25,7 +25,7 @@ steps:
     args:
       - -c
       - |
-        jq '.entry |= map(if .name == "your_key_name" then .value = "your_new_value" else . end)' \
+        jq '.entry |= map(if .name == "name" then .value = "NEWCOMPANY" else . end)' \
            /workspace/kvm.json > /workspace/updated_kvm.json
 
   - name: 'gcr.io/cloud-builders/curl'
