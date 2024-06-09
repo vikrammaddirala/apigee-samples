@@ -1,13 +1,13 @@
 steps:
   - name: 'gcr.io/cloud-builders/gcloud'
-    id: create_kvm_if_needed
+      - name: 'gcr.io/cloud-builders/gcloud'
+    id: variables
     entrypoint: 'bash'
     args:
       - -c
       - |
-        gcloud auth application-default print-access-token > /workspace/build_vars
-        export build_token="$(< /workspace/build_vars)"
-        curl -X POST -H "Authorization: Bearer $build_token" -H "Content-Type: application/json" -d '{"name": "SampleKVM"}' https://api.enterprise.apigee.com/v1/organizations/apigee-x-379708/environments/default-dev/keyvaluemaps
+        export build_token="$(gcloud auth application-default print-access-token)"
+        env | grep "^build_" > /workspace/build_vars
   - name: 'gcr.io/cloud-builders/curl'
     id: export_kvm
     entrypoint: 'bash'
