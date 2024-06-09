@@ -17,7 +17,7 @@ steps:
         source /workspace/build_vars
         curl -H "Authorization: Bearer $build_token" \
              -H "Content-Type: application/json" \
-             "https://apigee.googleapis.com/v1/organizations/YOUR_ORGANIZATION/environments/default-dev/keyvaluemaps/samplekvm-2" \
+             "https://apigee.googleapis.com/v1/organizations/apigee-x-379708/environments/default-dev/keyvaluemaps/samplekvm-2" \
              -o /workspace/kvm.json
         cat /workspace/kvm.json  # Debug output: Print the content of kvm.json
 
