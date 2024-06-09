@@ -9,27 +9,26 @@ steps:
         env | grep "^build_" > /workspace/build_vars
 
   - name: 'gcr.io/cloud-builders/curl'
-    id: export-kvm
-    entrypoint: 'bash'
     args:
-      - -c
+      - '-XPOST'
+      - '-H'
+      - 'Authorization: Bearer $(cat /workspace/build_vars | cut -d'=' -f2)'
+      - '-H'
+      - 'Content-Type: application/json'
+      - '-d'
       - |
-        source /workspace/build_vars
-        curl -v -H "Authorization: Bearer $build_token" \
-             -H "Content-Type: application/json" \
-             "https://apigee.googleapis.com/v1/organizations/apigee-x-379708/environments/default-dev/keyvaluemaps/samplekvm-2" \
-             -o /workspace/kvm.json
-
-  - name: 'gcr.io/cloud-builders/curl'
-    id: import-kvm
-    entrypoint: 'bash'
-    args:
-      - -c
-      - |
-        source /workspace/build_vars
-        curl -v -X POST -H "Authorization: Bearer $build_token" \
-             -H "Content-Type: application/json" \
-             -d @/workspace/kvm.json \
-             "https://apigee.googleapis.com/v1/organizations/apigee-x-379708/environments/test-env/keyvaluemaps"
-
-timeout: '600s'
+        {
+          "name": "SampleKVM",
+          "encrypted": false,
+          "entry": [
+            {
+              "name": "key1",
+              "value": "value1"
+            },
+            {
+              "name": "key2",
+              "value": "value2"
+            }
+          ]
+        }
+      - 'https://apigee.googleapis.com/v1/organizations/apigee-x-379708/environments/test-env/keyvaluemaps'
