@@ -9,25 +9,27 @@ steps:
         env | grep "^build_" > /workspace/build_vars
 
   - name: 'gcr.io/cloud-builders/curl'
-    id: export_kvm
+    id: export-kvm
     entrypoint: 'bash'
     args:
       - -c
       - |
-        curl -X GET -H "Authorization: Bearer $build_token" \
-          https://api.enterprise.apigee.com/v1/organizations/apigee-x-379708/environments/default-dev/keyvaluemaps/samplekvm-2 > /workspace/exported_kvm.json
+        source /workspace/build_vars
+        curl -H "Authorization: Bearer $build_token" \
+             -H "Content-Type: application/json" \
+             "https://apigee.googleapis.com/v1/organizations/YOUR_ORGANIZATION/environments/default-dev/keyvaluemaps/samplekvm-2" \
+             -o /workspace/kvm.json
 
   - name: 'gcr.io/cloud-builders/curl'
-    id: import_kvm
+    id: import-kvm
     entrypoint: 'bash'
     args:
       - -c
       - |
-        response=$(curl -X POST -H "Authorization: Bearer $build_token" \
-          -H "Content-Type: application/json" -d @/workspace/exported_kvm.json \
-          https://api.enterprise.apigee.com/v1/organizations/apigee-x-379708/environments/test-env/keyvaluemaps 2>&1)
-        echo "Response: $response"
-        if [[ $response == *"error"* ]]; then
-          echo "Error creating KVM in test environment"
-          exit 1
-        fi
+        source /workspace/build_vars
+        curl -X POST -H "Authorization: Bearer $build_token" \
+             -H "Content-Type: application/json" \
+             -d @/workspace/kvm.json \
+             "https://apigee.googleapis.com/v1/organizations/apigee-x-379708/environments/test-env/keyvaluemaps"
+
+timeout: '600s'
