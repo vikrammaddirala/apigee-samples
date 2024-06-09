@@ -18,7 +18,7 @@ steps:
         source /workspace/build_vars
         echo "Exporting KVM from default-dev environment..."
         curl -H "Authorization: Bearer $build_token" \
-             -X GET "https://apigee.googleapis.com/v1/organizations/apigee-x-379708/environments/default-dev/keyvaluemaps/SampleKVM" \
+             -X GET "https://apigee.googleapis.com/v1/organizations/apigee-x-379708/environments/test-env/keyvaluemaps/kvm-store-1" \
              -o /workspace/kvm.json
         cat /workspace/kvm.json
 
@@ -33,5 +33,5 @@ steps:
         echo "Importing KVM to test-env environment..."
         curl -H "Authorization: Bearer $build_token" \
              -H "Content-Type: application/json" \
-             -X POST "https://apigee.googleapis.com/v1/organizations/apigee-x-379708/environments/test-env/keyvaluemaps" \
+             -X POST "https://apigee.googleapis.com/v1/organizations/apigee-x-379708/environments/default-dev/keyvaluemaps" \
              -d @/workspace/kvm.json
