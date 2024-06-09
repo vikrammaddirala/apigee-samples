@@ -16,6 +16,7 @@ steps:
       - |
         source /workspace/build_vars
         export_kvm_url="https://apigee.googleapis.com/v1/organizations/apigee-x-379708/environments/default-dev/keyvaluemaps/samplekvm-2"
+        echo "Export URL: $export_kvm_url"
         curl -H "Authorization: Bearer $build_token" \
              -H "Content-Type: application/json" \
              "$export_kvm_url" \
