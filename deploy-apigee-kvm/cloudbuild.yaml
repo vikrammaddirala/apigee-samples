@@ -18,7 +18,7 @@ steps:
         source /workspace/build_vars
         curl -H "Authorization: Bearer $build_token" \
              -H "Content-Type: application/json" \
-             "https://apigee.googleapis.com/v1/organizations/apigee-x-379708/environments/default-dev/keyvaluemaps/YOUR_KVM_NAME" \
+             "https://apigee.googleapis.com/v1/organizations/apigee-x-379708/environments/default-dev/keyvaluemaps/SampleKVM" \
              -o kvm_export.json
         cat kvm_export.json  # Add this line to print the content of the exported KVM file
 
@@ -35,7 +35,3 @@ steps:
              -H "Content-Type: application/json" \
              -d @kvm_export.json \
              "https://apigee.googleapis.com/v1/organizations/apigee-x-379708/environments/test-env/keyvaluemaps"
-
-options:
-  logging: CLOUD_LOGGING_ONLY
-timeout: "600s"
