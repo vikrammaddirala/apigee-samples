@@ -9,8 +9,37 @@ steps:
         env | grep "^build_" > /workspace/build_vars
 
   - name: 'gcr.io/cloud-builders/curl'
-    id: export_kvm
+    id: create_kvm_if_needed
     waitFor: ['variables']
+    entrypoint: 'bash'
+    args:
+      - -c
+      - |
+        source /workspace/build_vars
+        echo "Checking if KVM exists in default-dev environment..."
+        response=$(curl -s -o /dev/null -w "%{http_code}" -H "Authorization: Bearer $build_token" \
+          -X GET "https://apigee.googleapis.com/v1/organizations/apigee-x-379708/environments/default-dev/keyvaluemaps/SampleKVM")
+        if [ $response -eq 404 ]; then
+          echo "KVM does not exist. Creating KVM in default-dev environment..."
+          curl -H "Authorization: Bearer $build_token" \
+               -H "Content-Type: application/json" \
+               -X POST "https://apigee.googleapis.com/v1/organizations/apigee-x-379708/environments/default-dev/keyvaluemaps" \
+               -d '{
+                     "name": "SampleKVM",
+                     "entry": [
+                       {
+                         "name": "COMPANY",
+                         "value": "example.com"
+                       }
+                     ]
+                   }'
+        else
+          echo "KVM exists."
+        fi
+
+  - name: 'gcr.io/cloud-builders/curl'
+    id: export_kvm
+    waitFor: ['create_kvm_if_needed']
     entrypoint: 'bash'
     args:
       - -c
@@ -18,7 +47,7 @@ steps:
         source /workspace/build_vars
         echo "Exporting KVM from default-dev environment..."
         curl -H "Authorization: Bearer $build_token" \
-             -X GET "https://apigee.googleapis.com/v1/organizations/apigee-x-379708/environments/test-env/keyvaluemaps/kvm-store-1" \
+             -X GET "https://apigee.googleapis.com/v1/organizations/apigee-x-379708/environments/default-dev/keyvaluemaps/SampleKVM" \
              -o /workspace/kvm.json
         cat /workspace/kvm.json
 
@@ -33,5 +62,5 @@ steps:
         echo "Importing KVM to test-env environment..."
         curl -H "Authorization: Bearer $build_token" \
              -H "Content-Type: application/json" \
-             -X POST "https://apigee.googleapis.com/v1/organizations/apigee-x-379708/environments/default-dev/keyvaluemaps" \
+             -X POST "https://apigee.googleapis.com/v1/organizations/apigee-x-379708/environments/test-env/keyvaluemaps" \
              -d @/workspace/kvm.json
