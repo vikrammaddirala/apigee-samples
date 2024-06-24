@@ -1,21 +1,8 @@
 steps:
-  # Step 1: Read environment variables from build_vars file
-  - name: 'gcr.io/cloud-builders/bash'
-    id: read-vars
-    entrypoint: 'bash'
-    args:
-      - -c
-      - |
-        set -o allexport
-        source /workspace/build_vars
-        set +o allexport
-
-  # Step 2: Export and deploy each proxy
+  # Step 1: Export and deploy each proxy
   - name: 'gcr.io/cloud-builders/curl'
     id: export-deploy
     entrypoint: 'bash'
-    env:
-      - "build_token=${build_token}"
     args:
       - -c
       - |
@@ -32,7 +19,7 @@ steps:
 
           # Export the proxy
           export_url="https://apigee.googleapis.com/v1/organizations/$org/apis/$proxy/revisions/1?format=bundle"
-          curl -X GET "$export_url" -H "Authorization: Bearer $build_token" -o "/workspace/$proxy.zip"
+          curl -X GET "$export_url" -H "Authorization: Bearer $BUILD_TOKEN" -o "/workspace/$proxy.zip"
           
           # Check if the export was successful
           if [ $? -eq 0 ]; then
@@ -44,19 +31,13 @@ steps:
 
           # Import and deploy to test environment
           import_url="https://apigee.googleapis.com/v1/organizations/$org/environments/$test_env/apis?action=import&name=$proxy"
-          curl -X POST "$import_url" -H "Authorization: Bearer $build_token" -H "Content-Type: multipart/form-data" -F "file=@/workspace/$proxy.zip"
+          curl -X POST "$import_url" -H "Authorization: Bearer $BUILD_TOKEN" -H "Content-Type: multipart/form-data" -F "file=@/workspace/$proxy.zip"
           
           # Extract revision number from the proxy bundle
           revision=$(unzip -p "/workspace/$proxy.zip" apiproxy/*.xml | grep -oP '(?<=<Version>)[^<]+')
           deploy_url="https://apigee.googleapis.com/v1/organizations/$org/environments/$test_env/apis/$proxy/revisions/$revision/deployments"
-          curl -X POST "$deploy_url" -H "Authorization: Bearer $build_token"
+          curl -X POST "$deploy_url" -H "Authorization: Bearer $BUILD_TOKEN"
         done
-
-# Define substitutions (modify as needed)
-substitutions:
-  _env_test: 'default-dev'
-  _test_env: 'test-env'
-  _org: 'apigee-x-379708'
 
 # Define timeout (optional)
 timeout: '1200s'
