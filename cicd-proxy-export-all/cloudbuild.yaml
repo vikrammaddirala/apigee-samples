@@ -27,7 +27,7 @@ steps:
         TEST_ENV="test-env"
 
         for proxy in "${proxies[@]}"; do
-          echo "Processing proxy: $PROXY"
+          echo "Processing proxy: $proxy"
 
           # Export the proxy
           EXPORT_URL="https://apigee.googleapis.com/v1/organizations/$ORG/apis/$proxy/revisions/1?format=bundle"
