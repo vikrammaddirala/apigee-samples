@@ -22,32 +22,32 @@ steps:
         proxies=("FirstTemplateProxy" "generateReport" "GetAttachmentLists")
         
         # Define your Apigee organization and environments
-        ORG="apigee-x-379708"
-        DEV_ENV="default-dev"
-        TEST_ENV="test-env"
+        _ORG="apigee-x-379708"
+        _DEV_ENV="default-dev"
+        _TEST_ENV="test-env"
 
         for proxy in "${proxies[@]}"; do
           echo "Processing proxy: $proxy"
 
           # Export the proxy
-          EXPORT_URL="https://apigee.googleapis.com/v1/organizations/$ORG/apis/$proxy/revisions/1?format=bundle"
-          curl -X GET "$EXPORT_URL" -H "Authorization: Bearer $build_token" -o "/workspace/$proxy.zip"
+          _EXPORT_URL="https://apigee.googleapis.com/v1/organizations/$_ORG/apis/$proxy/revisions/1?format=bundle"
+          curl -X GET "$_EXPORT_URL" -H "Authorization: Bearer $build_token" -o "/workspace/$proxy.zip"
 
           # Import and deploy to test environment
-          IMPORT_URL="https://apigee.googleapis.com/v1/organizations/$ORG/environments/$TEST_ENV/apis?action=import&name=$proxy"
-          curl -X POST "$IMPORT_URL" -H "Authorization: Bearer $build_token" -H "Content-Type: multipart/form-data" -F "file=@/workspace/$proxy.zip"
+          _IMPORT_URL="https://apigee.googleapis.com/v1/organizations/$_ORG/environments/$_TEST_ENV/apis?action=import&name=$proxy"
+          curl -X POST "$_IMPORT_URL" -H "Authorization: Bearer $build_token" -H "Content-Type: multipart/form-data" -F "file=@/workspace/$proxy.zip"
           
           # Extract revision number from the proxy bundle
-          REVISION=$(unzip -p "/workspace/$proxy.zip" apiproxy/*.xml | grep -oP '(?<=<Version>)[^<]+')
-          DEPLOY_URL="https://apigee.googleapis.com/v1/organizations/$ORG/environments/$TEST_ENV/apis/$proxy/revisions/$REVISION/deployments"
-          curl -X POST "$DEPLOY_URL" -H "Authorization: Bearer $build_token"
+          _REVISION=$(unzip -p "/workspace/$proxy.zip" apiproxy/*.xml | grep -oP '(?<=<Version>)[^<]+')
+          _DEPLOY_URL="https://apigee.googleapis.com/v1/organizations/$_ORG/environments/$_TEST_ENV/apis/$proxy/revisions/$_REVISION/deployments"
+          curl -X POST "$_DEPLOY_URL" -H "Authorization: Bearer $build_token"
         done
 
 # Define substitutions (modify as needed)
 substitutions:
   _ENV: 'default-dev'
   _TARGET_ENV: 'test-env'
-  _ORG: 'your-apigee-org'
+  _ORG: 'apigee-x-379708'
 
 # Define timeout (optional)
 timeout: '1200s'
