@@ -23,7 +23,7 @@ steps:
         proxies=("FirstTemplateProxy" "generateReport" "GetAttachmentLists")
         
         # Define your Apigee organization and environments
-        org="your-apigee-org"
+        org="apigee-x-379708"
         dev_env="default-dev"
         test_env="test-env"
 
@@ -55,8 +55,8 @@ steps:
 # Define substitutions (modify as needed)
 substitutions:
   _env: 'default-dev'
-  _target_env: 'test-env'
-  _org: 'your-apigee-org'
+  _test_env: 'test-env'
+  _org: 'apigee-x-379708'
 
 # Define timeout (optional)
 timeout: '1200s'
