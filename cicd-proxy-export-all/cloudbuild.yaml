@@ -1,5 +1,14 @@
 steps:
-  # Step 1: Read proxies.json and export and deploy each proxy
+  # Step 1: Install jq
+  - name: 'gcr.io/cloud-builders/curl'
+    id: install-jq
+    entrypoint: 'bash'
+    args:
+      - -c
+      - |
+        apt-get update && apt-get install -y jq
+
+  # Step 2: Read proxies.json and export and deploy each proxy
   - name: 'gcr.io/cloud-builders/gcloud'
     id: export-deploy
     entrypoint: 'bash'
@@ -7,17 +16,17 @@ steps:
       - -c
       - |
         # Read the JSON file from the repository
-        proxies=$(cat /workspace/cicd-proxy-export-all/proxy-list/proxies.json | jq -r '.proxies[]')
+        PROXIES=$(cat /cicd-proxy-export-all/proxy-list/proxies.json | jq -r '.proxies[]')
 
-        for proxy in $proxies; do
-          echo "Processing proxy: $proxy"
+        for PROXY in $PROXIES; do
+          echo "Processing proxy: $PROXY"
 
           # Export the proxy
-          gcloud apigee apis export $proxy --environment=default-dev --zip-file=/workspace/$proxy.zip
+          gcloud apigee apis export $PROXY --environment=default-dev --zip-file=/workspace/$PROXY.zip
 
           # Deploy to test environment
-          gcloud apigee apis import --name=$proxy --file=/workspace/$proxy.zip
-          gcloud apigee apis deploy --name=$proxy --environment=test-env
+          gcloud apigee apis import --name=$PROXY --file=/workspace/$PROXY.zip
+          gcloud apigee apis deploy --name=$PROXY --environment=test-env
         done
 
 # Define substitutions (modify as needed)
