@@ -10,14 +10,14 @@ steps:
         proxies=$(cat /workspace/cicd-proxy-export-all/proxy-list/proxies.json | jq -r '.proxies[]')
 
         for proxy in $proxies; do
-          echo "Processing proxy: $PROXY"
+          echo "Processing proxy: $proxy"
 
           # Export the proxy
-          gcloud apigee apis export $PROXY --environment=default-dev --zip-file=/workspace/$PROXY.zip
+          gcloud apigee apis export $proxy --environment=default-dev --zip-file=/workspace/$proxy.zip
 
           # Deploy to test environment
-          gcloud apigee apis import --name=$PROXY --file=/workspace/$PROXY.zip
-          gcloud apigee apis deploy --name=$PROXY --environment=test-env
+          gcloud apigee apis import --name=$proxy --file=/workspace/$proxy.zip
+          gcloud apigee apis deploy --name=$proxy --environment=test-env
         done
 
 # Define substitutions (modify as needed)
