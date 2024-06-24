@@ -9,7 +9,7 @@ steps:
         # Read the JSON file from the repository
         proxies=$(cat /workspace/cicd-proxy-export-all/proxy-list/proxies.json | jq -r '.proxies[]')
 
-        for PROXY in $proxies; do
+        for proxy in $proxies; do
           echo "Processing proxy: $PROXY"
 
           # Export the proxy
