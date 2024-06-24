@@ -1,24 +1,24 @@
 steps:
-  # Step 1: Install jq
-  - name: 'gcr.io/cloud-builders/curl'
-    id: install-jq
-    entrypoint: 'bash'
-    args:
-      - -c
-      - |
-        apt-get update && apt-get install -y jq
+  # Step 1: Install jq (optional, removed since we don't need it now)
+  #- name: 'gcr.io/cloud-builders/curl'
+  #  id: install-jq
+  #  entrypoint: 'bash'
+  #  args:
+  #    - -c
+  #    - |
+  #      apt-get update && apt-get install -y jq
 
-  # Step 2: Read proxies.json and export and deploy each proxy
+  # Step 2: Export and deploy each proxy
   - name: 'gcr.io/cloud-builders/gcloud'
     id: export-deploy
     entrypoint: 'bash'
     args:
       - -c
       - |
-        # Read the JSON file from the repository
-        proxies=$(cat /cicd-proxy-export-all/proxy-list/proxies.json | jq -r '.proxies[]')
+        # Define the list of proxies
+        proxies=("FirstTemplateProxy" "generateReport" "GetAttachmentLists")
 
-        for proxy in $proxies; do
+        for proxy in "${proxies[@]}"; do
           echo "Processing proxy: $proxy"
 
           # Export the proxy
