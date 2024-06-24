@@ -1,18 +1,29 @@
 steps:
+  # Step 1: Read proxies.json and export and deploy each proxy
   - name: 'gcr.io/cloud-builders/gcloud'
-    id: download-proxies
+    id: export-deploy
     entrypoint: 'bash'
     args:
       - -c
       - |
-        echo "Downloading proxies from default-dev environment..."
-        gcloud apigee apis list --environment=default-dev --format=json > /workspace/proxies.json
+        # Read the JSON file from the repository
+        PROXIES=$(cat /workspace/cicd-proxy-export-all/proxy-list/proxies.json | jq -r '.proxies[]')
 
-  - name: 'gcr.io/cloud-builders/gsutil'
-    id: upload-proxies
-    entrypoint: 'bash'
-    args:
-      - -c
-      - |
-        echo "Uploading proxies to proxy-storage-01 bucket..."
-        gsutil cp /workspace/proxies.json gs://proxy-storage-01/proxies.json
+        for PROXY in $PROXIES; do
+          echo "Processing proxy: $PROXY"
+
+          # Export the proxy
+          gcloud apigee apis export $PROXY --environment=default-dev --zip-file=/workspace/$PROXY.zip
+
+          # Deploy to test environment
+          gcloud apigee apis import --name=$PROXY --file=/workspace/$PROXY.zip
+          gcloud apigee apis deploy --name=$PROXY --environment=test-env
+        done
+
+# Define substitutions (modify as needed)
+substitutions:
+  _ENV: 'default-dev'
+  _TARGET_ENV: 'test-env'
+
+# Define timeout (optional)
+timeout: '1200s'
