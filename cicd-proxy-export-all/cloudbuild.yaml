@@ -54,8 +54,8 @@ steps:
 
 # Define substitutions (modify as needed)
 substitutions:
-  _env: 'default-dev'
-  _env_test: 'test-env'
+  _env_test: 'default-dev'
+  _test_env: 'test-env'
   _org: 'apigee-x-379708'
 
 # Define timeout (optional)
