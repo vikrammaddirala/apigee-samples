@@ -14,7 +14,7 @@ steps:
     id: export-deploy
     entrypoint: 'bash'
     env:
-      - $(cat /workspace/build_vars)
+      - "build_token=${build_token}"
     args:
       - -c
       - |
