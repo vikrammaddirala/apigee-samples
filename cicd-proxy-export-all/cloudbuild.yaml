@@ -1,13 +1,14 @@
 steps:
-  # Step 1: Generate access token and store it in a variable
-  - name: 'gcr.io/cloud-builders/gcloud'
-    id: variables
+  # Step 1: Read environment variables from build_vars file
+  - name: 'gcr.io/cloud-builders/bash'
+    id: read-vars
     entrypoint: 'bash'
     args:
       - -c
       - |
-        export build_token=\"$(gcloud auth application-default print-access-token)\"
-        env | grep "^build_" > /workspace/build_vars
+        set -o allexport
+        source /workspace/build_vars
+        set +o allexport
 
   # Step 2: Export and deploy each proxy
   - name: 'gcr.io/cloud-builders/curl'
@@ -22,32 +23,40 @@ steps:
         proxies=("FirstTemplateProxy" "generateReport" "GetAttachmentLists")
         
         # Define your Apigee organization and environments
-        _ORG="apigee-x-379708"
-        _DEV_ENV="default-dev"
-        _TEST_ENV="test-env"
+        org="your-apigee-org"
+        dev_env="default-dev"
+        test_env="test-env"
 
         for proxy in "${proxies[@]}"; do
           echo "Processing proxy: $proxy"
 
           # Export the proxy
-          _EXPORT_URL="https://apigee.googleapis.com/v1/organizations/$_ORG/apis/$proxy/revisions/1?format=bundle"
-          curl -X GET "$_EXPORT_URL" -H "Authorization: Bearer $build_token" -o "/workspace/$proxy.zip"
+          export_url="https://apigee.googleapis.com/v1/organizations/$org/apis/$proxy/revisions/1?format=bundle"
+          curl -X GET "$export_url" -H "Authorization: Bearer $build_token" -o "/workspace/$proxy.zip"
+          
+          # Check if the export was successful
+          if [ $? -eq 0 ]; then
+            echo "Proxy export successful: $proxy"
+          else
+            echo "Proxy export failed: $proxy"
+            exit 1
+          fi
 
           # Import and deploy to test environment
-          _IMPORT_URL="https://apigee.googleapis.com/v1/organizations/$_ORG/environments/$_TEST_ENV/apis?action=import&name=$proxy"
-          curl -X POST "$_IMPORT_URL" -H "Authorization: Bearer $build_token" -H "Content-Type: multipart/form-data" -F "file=@/workspace/$proxy.zip"
+          import_url="https://apigee.googleapis.com/v1/organizations/$org/environments/$test_env/apis?action=import&name=$proxy"
+          curl -X POST "$import_url" -H "Authorization: Bearer $build_token" -H "Content-Type: multipart/form-data" -F "file=@/workspace/$proxy.zip"
           
           # Extract revision number from the proxy bundle
-          _REVISION=$(unzip -p "/workspace/$proxy.zip" apiproxy/*.xml | grep -oP '(?<=<Version>)[^<]+')
-          _DEPLOY_URL="https://apigee.googleapis.com/v1/organizations/$_ORG/environments/$_TEST_ENV/apis/$proxy/revisions/$_REVISION/deployments"
-          curl -X POST "$_DEPLOY_URL" -H "Authorization: Bearer $build_token"
+          revision=$(unzip -p "/workspace/$proxy.zip" apiproxy/*.xml | grep -oP '(?<=<Version>)[^<]+')
+          deploy_url="https://apigee.googleapis.com/v1/organizations/$org/environments/$test_env/apis/$proxy/revisions/$revision/deployments"
+          curl -X POST "$deploy_url" -H "Authorization: Bearer $build_token"
         done
 
 # Define substitutions (modify as needed)
 substitutions:
-  _ENV: 'default-dev'
-  _TARGET_ENV: 'test-env'
-  _ORG: 'apigee-x-379708'
+  _env: 'default-dev'
+  _target_env: 'test-env'
+  _org: 'your-apigee-org'
 
 # Define timeout (optional)
 timeout: '1200s'
